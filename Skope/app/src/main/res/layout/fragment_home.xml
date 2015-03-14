@@ -1,0 +1,19 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:background="#BF45b9e4"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <dev.skope.ui.CircularSeekBar
+            android:id="@+id/circular_seekbar"
+            android:layout_centerInParent="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </RelativeLayout>
+
+
+</FrameLayout>
