@@ -2,16 +2,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingRight="10dp"
-    android:background="#CC44b8e3"
-    tools:context="dev.skope.tabHome.FragmentListUser">
+    tools:context="dev.skope.tabHome.FragmentUserProfile">
 
     <RelativeLayout
         android:background="#F5F5F5"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
         <TextView
-            android:text="List User"
+            android:text="My Profile"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </RelativeLayout>

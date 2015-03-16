@@ -1,6 +1,7 @@
 package dev.skope.SplashScreen;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -12,15 +13,12 @@ import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import dev.skope.R;
+import dev.skope.Skope;
 import dev.skope.utils.Utils;
 
 public class SplashScreen extends Activity implements View.OnClickListener{
-
-    // Animation
-    private Animation animFadeIn;
 
     // View
     private ImageView mImgLogoView;
@@ -81,9 +79,6 @@ public class SplashScreen extends Activity implements View.OnClickListener{
     }
 
     private void initialize() {
-        // Animation
-        animFadeIn = AnimationUtils.loadAnimation(this, R.anim.slide_in_top);
-
         // View
         mImgLogoView = (ImageView) findViewById(R.id.img_logo_text);
         ViewTreeObserver vto = mImgLogoView.getViewTreeObserver();
@@ -124,7 +119,9 @@ public class SplashScreen extends Activity implements View.OnClickListener{
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.txt_btn_login_facebook:
-                Toast.makeText(getApplicationContext(), "Sign In with Facebook", Toast.LENGTH_SHORT).show();
+                Intent startSkope = new Intent(this, Skope.class);
+                startActivity(startSkope);
+                finish();
                 break;
         }
     }

@@ -1,6 +1,7 @@
 package dev.skope;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -9,10 +10,12 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.view.ViewGroup;
 
+import dev.skope.Message.MessageActivity;
 import dev.skope.tabContainer.HomeContainer;
 import dev.skope.tabContainer.ListPostContainer;
 import dev.skope.tabContainer.ListUserContainer;
 import dev.skope.tabContainer.UserProfileContainer;
+import dev.skope.tabUserProfile.FragmentMyProfile;
 import dev.skope.ui.HackyViewPager;
 
 
@@ -97,5 +100,29 @@ public class Skope extends FragmentActivity {
 
     }
 
+    /**
+     * Listener
+     */
+    public void onClickToMyPage() {
+        mHackyViewPager.setCurrentItem(0);
+        Fragment mF = (Fragment) mPagerAdapter.instantiateItem(mHackyViewPager, 0);
+        if (mF instanceof UserProfileContainer) {
+            ((UserProfileContainer)mF).replaceFragment(FragmentMyProfile.newInstance(), true);
+        }
+    }
+
+    public void onClickToListUser() {
+        mHackyViewPager.setCurrentItem(1);
+    }
+
+    public void onClickToListPost() {
+        mHackyViewPager.setCurrentItem(3);
+    }
+
+    public void onClickToMessage() {
+        Intent startMessageActivity = new Intent(this, MessageActivity.class);
+        startActivity(startMessageActivity);
+        overridePendingTransition(R.anim.push_up_in, R.anim.push_up_out);
+    }
 
 }
