@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="main">#377EB0</color>
+    <color name="main_focus">#ffea3939</color>
+    <color name="button_disable">#b57272</color>
+    <color name="main_background">#ffffff</color>
+    <color name="sub_background">#ffffff</color>
+    <color name="profile_stats_background">#ffffff</color>
+    <color name="menu_background">#ffffff</color>
+    <color name="categories_label">#c02126</color>
+    <color name="main_text">#414141</color>
+    <color name="hint_text">#898e91</color>
+    <color name="link_text">#2182c0</color>
+    <color name="location_link_text">#5c8ec7</color>
+    <color name="focus_text_2">#ffffff</color>
+    <!--<color name="dialog_background">#BF000000</color>-->
+    <color name="dialog_background">#FA000000</color>
+    <color name="dialog_background_mediaview">#e9eaed</color>
+    <color name="list_activity_background">#e9eaed</color>
+
+    <color name="button_default">#0099CC</color>
+
+    <color name="default_actionbar_background_color">@color/light_blue</color>
+
+    <color name="light_blue">#3498db</color>
+    <color name="dark_blue">#2980b9</color>
+    <color name="light_gray">#ecf0f1</color>
+    <color name="dark_gray">#bdc3c7</color>
+    <color name="light_ultra_gray">#95a5a6</color>
+    <color name="dark_ultra_gray">#7f8c8d</color>
+    <color name="light_purple">#9b59b6</color>
+    <color name="dark_purple">#8e44ad</color>
+    <color name="light_ultra_blue">#34495e</color>
+    <color name="dark_ultra_blue">#2c3e50</color>
+</resources>

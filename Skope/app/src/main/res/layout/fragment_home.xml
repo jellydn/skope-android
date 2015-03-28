@@ -1,10 +1,10 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:background="@drawable/image_background_home"
+    android:background="@color/dark_ultra_gray"
     android:layout_height="match_parent">
 
     <RelativeLayout
-        android:background="@drawable/image_background_home"
+        android:background="@color/dark_ultra_gray"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -175,9 +175,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
-            <dev.skope.ui.CircularSeekBar
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
         </FrameLayout>
 
         <!-- Layout bottom -->
@@ -189,10 +186,10 @@
             android:layout_marginBottom="16dp"
             android:layout_height="wrap_content">
 
-            <dev.skope.ui.CircleImageView
+            <vn.dev.Skope.views.CircleImageView
                 android:id="@+id/img_btn_my_profile"
                 android:layout_alignParentRight="true"
-                android:src="@drawable/demo_image"
+                android:src="@color/categories_label"
                 android:layout_centerVertical="true"
                 android:layout_width="48dp"
                 android:layout_height="48dp" />
@@ -211,12 +208,12 @@
                 android:paddingLeft="50dp"
                 android:paddingRight="50dp"
                 android:textStyle="bold"
-                android:background="@drawable/selector_button_compose_post" />
+                android:background="@color/light_gray" />
 
             <ImageView
                 android:scaleType="fitXY"
                 android:id="@+id/img_to_list_my_message"
-                android:src="@drawable/ic_menu_left"
+                android:src="@color/material_blue_grey_800"
                 android:adjustViewBounds="true"
                 android:layout_centerVertical="true"
                 android:layout_alignParentLeft="true"
