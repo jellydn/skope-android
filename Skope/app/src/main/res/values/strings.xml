@@ -1,8 +1,11 @@
 <resources>
-<string name="app_name">Base Project</string>
+    <string name="app_name">Skope</string>
 
-<string name="hello_world">Hello world!</string>
+    <string name="empty">___</string>
 
-<!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="home_tv_title">Within you area we have found</string>
+    <string name="home_tv_users_des">users</string>
+    <string name="home_tv_posts_des">posts</string>
+    <string name="home_tv_radius_des">Radius&#160;</string>
+
 </resources>
