@@ -73,6 +73,6 @@ public class UsersListAdapter extends BaseAdapter {
      * Holder for the list items.
      */
     private class ViewHolder{
-        TextView titleText;
+        //TextView titleText;
     }
 }

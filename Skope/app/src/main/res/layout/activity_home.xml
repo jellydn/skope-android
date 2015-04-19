@@ -3,34 +3,7 @@
     android:layout_height="match_parent">
 
     <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:background="@android:color/background_light">
-
-        <fragment
-            android:id="@+id/user_fragment"
-            android:name="com.productsway.skope.fragments.UsersFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-    </RelativeLayout>
-
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="end"
-        android:background="@android:color/background_light">
-
-
-        <EditText
-            android:layout_width="78dp"
-            android:layout_height="78dp"
-            android:text="sadasdasd"/>
-        </RelativeLayout>
-
-    <RelativeLayout
-        android:id="@+id/content_frame"
+        android:id="@+id/vgr_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/bg_dashboard">
@@ -253,4 +226,29 @@
             android:id="@+id/vgr_help"
             layout="@layout/area_help" />
     </RelativeLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@android:color/background_light">
+
+        <fragment
+            android:id="@+id/user_fragment"
+            android:name="com.productsway.skope.fragments.UsersFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@android:color/background_light">
+
+
+    </RelativeLayout>
+
 </android.support.v4.widget.DrawerLayout>
