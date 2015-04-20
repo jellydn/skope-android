@@ -21,14 +21,14 @@ import java.util.HashMap;
  * Created by Vo Hoang San - hoangsan.762@gmai.com
  * Copyright (c) 2015 San Vo. All right reserved.
  */
-public class PostsAdapter extends BaseExpandableListAdapter {
+public class FeedAdapter extends BaseExpandableListAdapter {
     private Context mContext;
     private ArrayList<String> mPosts;
     private HashMap<String, ArrayList<String>> mComments;
     private ExpandableListView mParent;
 
-    public PostsAdapter(Context context, ArrayList<String> posts,
-                        HashMap<String, ArrayList<String>> comments) {
+    public FeedAdapter(Context context, ArrayList<String> posts,
+                       HashMap<String, ArrayList<String>> comments) {
         this.mContext = context;
         this.mPosts = posts;
         this.mComments = comments;
@@ -79,9 +79,10 @@ public class PostsAdapter extends BaseExpandableListAdapter {
         if (convertView == null) {
             LayoutInflater inflater = (LayoutInflater) mContext
                     .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-            viewToUse = inflater.inflate(R.layout.item_user_detail_post, null);
+            viewToUse = inflater.inflate(R.layout.item_feed, null);
 
             holder = new PostViewHolder();
+            holder.tvUserName = (TextView) viewToUse.findViewById(R.id.tv_user_name);
             holder.btnCommentExpand = (TextView) viewToUse.findViewById(R.id.btn_comment_expand);
             holder.tvPostDistance = (TextView) viewToUse.findViewById(R.id.tv_post_distance);
             holder.tvPostContent = (TextView) viewToUse.findViewById(R.id.tv_post_content);
@@ -96,13 +97,14 @@ public class PostsAdapter extends BaseExpandableListAdapter {
             @Override
             public void onClick(View v) {
                 int groupPosition = (int) v.getTag();
-                if (PostsAdapter.this.mParent.isGroupExpanded(groupPosition))
-                    PostsAdapter.this.mParent.collapseGroup(groupPosition);
-                else PostsAdapter.this.mParent.expandGroup(groupPosition, true);
+                if (FeedAdapter.this.mParent.isGroupExpanded(groupPosition))
+                    FeedAdapter.this.mParent.collapseGroup(groupPosition);
+                else FeedAdapter.this.mParent.expandGroup(groupPosition, true);
             }
         });
 
         //TODO temp data
+        holder.tvUserName.setText("User 1");
         holder.tvPostContent.setText(this.mPosts.get(groupPosition));
         holder.tvPostDistance.setText(String.format("Posted %d km away", (int)(100 * Math.random())));
         holder.btnCommentExpand.setText(String.format("Comments (%d)", this.mComments.get(this.mPosts.get(groupPosition))
@@ -118,7 +120,7 @@ public class PostsAdapter extends BaseExpandableListAdapter {
         if (convertView == null) {
             LayoutInflater inflater = (LayoutInflater) mContext
                     .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-            viewToUse = inflater.inflate(R.layout.item_user_detail_post_comment, null);
+            viewToUse = inflater.inflate(R.layout.item_feed_comment, null);
 
             holder = new CommentViewHolder();
             holder.tvCommentContent = (TextView)viewToUse.findViewById(R.id.tv_comment_content);
@@ -139,7 +141,7 @@ public class PostsAdapter extends BaseExpandableListAdapter {
         return false;
     }
 
-    public void setParent(ExpandableHeightListView lstPosts) {
+    public void setParent(ExpandableListView lstPosts) {
         mParent = lstPosts;
     }
 
@@ -147,6 +149,7 @@ public class PostsAdapter extends BaseExpandableListAdapter {
      * Holder for the list items.
      */
     private class PostViewHolder {
+        TextView tvUserName;
         TextView btnCommentExpand;
         TextView tvPostDistance;
         TextView tvPostContent;

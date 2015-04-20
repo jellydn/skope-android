@@ -40,6 +40,7 @@ import java.util.HashMap;
 
 public class UserDetailActivity extends CustomActivity {
     private ExpandableHeightListView lstPosts;
+    private TextView tvNumberOfPosts;
 
     private PostsAdapter mPostsAdapter;
 
@@ -92,9 +93,14 @@ public class UserDetailActivity extends CustomActivity {
     @Override
     public void initControls() {
         lstPosts = (ExpandableHeightListView) this.findViewById(R.id.lst_posts);
+        tvNumberOfPosts = (TextView) this.findViewById(R.id.tv_number_of_posts);
 
+        mPostsAdapter.setParent(lstPosts);
         lstPosts.setAdapter(mPostsAdapter);
         lstPosts.setExpanded(true);
+
+        //TODO temp data
+        tvNumberOfPosts.setText("User 1");
     }
 
     @Override

@@ -14,8 +14,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
+import android.support.v4.widget.DrawerLayout;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -45,6 +47,8 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
     private ImageButton btnComposePost;
     private EditText edtComposeContent;
     private Button btnAttach, btnPost;
+    private ImageButton btnLeft, btnRight;
+    private DrawerLayout mDrawerLayout;
 
     private int mCurrentRadius;
 
@@ -76,6 +80,9 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         edtComposeContent = (EditText) this.findViewById(R.id.edt_compose_content);
         btnAttach = (Button) this.findViewById(R.id.btn_attach);
         btnPost = (Button) this.findViewById(R.id.btn_post);
+        btnLeft = (ImageButton) this.findViewById(R.id.btn_left);
+        btnRight = (ImageButton) this.findViewById(R.id.btn_right);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 
         googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
 
@@ -102,6 +109,12 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         btnPost.setOnClickListener(this);
         btnAttach.setOnClickListener(this);
         vgrMain.setOnClickListener(this);
+        btnLeft.setOnClickListener(this);
+        btnRight.setOnClickListener(this);
+    }
+
+    public void closeAllDrawer() {
+        mDrawerLayout.closeDrawers();
     }
 
     @Override
@@ -140,6 +153,10 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
 
                 vgrCompose.setVisibility(View.GONE);
             }
+        } else if (v.getId() == R.id.btn_left) {
+            mDrawerLayout.openDrawer(Gravity.START);
+        } else if (v.getId() == R.id.btn_right) {
+            mDrawerLayout.openDrawer(Gravity.END);
         }
     }
 }
