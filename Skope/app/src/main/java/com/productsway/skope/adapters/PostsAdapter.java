@@ -6,11 +6,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
 
 import com.productsway.skope.R;
+import com.productsway.skope.UserDetailActivity;
 import com.productsway.skope.custom.ExpandableHeightListView;
+import com.productsway.skope.interfaces.ICommentable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,12 +29,18 @@ public class PostsAdapter extends BaseExpandableListAdapter {
     private ArrayList<String> mPosts;
     private HashMap<String, ArrayList<String>> mComments;
     private ExpandableListView mParent;
+    private ICommentable mCommentableActivity;
+
+    private boolean mIsShowPostDate;
 
     public PostsAdapter(Context context, ArrayList<String> posts,
-                        HashMap<String, ArrayList<String>> comments) {
+                        HashMap<String, ArrayList<String>> comments, ICommentable commentableActivity) {
         this.mContext = context;
         this.mPosts = posts;
         this.mComments = comments;
+        this.mCommentableActivity = commentableActivity;
+
+        mIsShowPostDate = false;
     }
 
     @Override
@@ -84,11 +93,20 @@ public class PostsAdapter extends BaseExpandableListAdapter {
             holder = new PostViewHolder();
             holder.btnCommentExpand = (TextView) viewToUse.findViewById(R.id.btn_comment_expand);
             holder.tvPostDistance = (TextView) viewToUse.findViewById(R.id.tv_post_distance);
+            holder.tvPostDate = (TextView) viewToUse.findViewById(R.id.tv_post_date);
             holder.tvPostContent = (TextView) viewToUse.findViewById(R.id.tv_post_content);
+            holder.btnComment = (Button) viewToUse.findViewById(R.id.btn_comment);
             viewToUse.setTag(holder);
         } else {
             viewToUse = convertView;
             holder = (PostViewHolder) viewToUse.getTag();
+        }
+        
+        if(mIsShowPostDate) {
+            holder.tvPostDate.setVisibility(View.VISIBLE);
+        }
+        else {
+            holder.tvPostDate.setVisibility(View.GONE);
         }
 
         holder.btnCommentExpand.setTag(groupPosition);
@@ -101,12 +119,19 @@ public class PostsAdapter extends BaseExpandableListAdapter {
                 else PostsAdapter.this.mParent.expandGroup(groupPosition, true);
             }
         });
+        holder.btnComment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCommentableActivity.showAddCommentBox();
+            }
+        });
 
         //TODO temp data
         holder.tvPostContent.setText(this.mPosts.get(groupPosition));
-        holder.tvPostDistance.setText(String.format("Posted %d km away", (int)(100 * Math.random())));
+        holder.tvPostDistance.setText(String.format("Posted %d km away", (int) (100 * Math.random())));
         holder.btnCommentExpand.setText(String.format("Comments (%d)", this.mComments.get(this.mPosts.get(groupPosition))
                 .size()));
+        holder.tvPostDate.setText("31 December, 2015");
         return viewToUse;
     }
 
@@ -121,7 +146,7 @@ public class PostsAdapter extends BaseExpandableListAdapter {
             viewToUse = inflater.inflate(R.layout.item_user_detail_post_comment, null);
 
             holder = new CommentViewHolder();
-            holder.tvCommentContent = (TextView)viewToUse.findViewById(R.id.tv_comment_content);
+            holder.tvCommentContent = (TextView) viewToUse.findViewById(R.id.tv_comment_content);
             viewToUse.setTag(holder);
         } else {
             viewToUse = convertView;
@@ -143,14 +168,19 @@ public class PostsAdapter extends BaseExpandableListAdapter {
         mParent = lstPosts;
     }
 
+    public void isShowPostDate(boolean isShown) {
+        mIsShowPostDate = isShown;
+    }
+
     /**
      * Holder for the list items.
      */
     private class PostViewHolder {
         TextView btnCommentExpand;
         TextView tvPostDistance;
+        TextView tvPostDate;
         TextView tvPostContent;
-        boolean isExpand;
+        Button btnComment;
     }
 
     private class CommentViewHolder {

@@ -9,22 +9,20 @@ package com.productsway.skope;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.provider.MediaStore;
 import android.support.v4.widget.DrawerLayout;
-import android.util.DisplayMetrics;
-import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Gravity;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -37,14 +35,12 @@ import com.productsway.skope.custom.CircularPickChangeListener;
 import com.productsway.skope.custom.CustomActivity;
 import com.productsway.skope.utils.MeasureUtil;
 
-import java.io.File;
-
 public class HomeActivity extends CustomActivity implements View.OnClickListener, CircularPickChangeListener {
     private TextView tvUsers, tvPosts, tvRadius;
     private GoogleMap googleMap;
     private CircularPick circularPick;
-    private View vgrHelp, vgrCompose, vgrMain;
-    private ImageButton btnComposePost;
+    private View vgrHelp, vgrCompose;
+    private ImageButton btnComposePost, btnProfile;
     private EditText edtComposeContent;
     private Button btnAttach, btnPost;
     private ImageButton btnLeft, btnRight;
@@ -75,8 +71,8 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         circularPick = (CircularPick) this.findViewById(R.id.clp_zoom);
         vgrHelp = this.findViewById(R.id.vgr_help);
         vgrCompose = this.findViewById(R.id.vgr_compose);
-        vgrMain = this.findViewById(R.id.vgr_main);
         btnComposePost = (ImageButton) this.findViewById(R.id.btn_compose_post);
+        btnProfile = (ImageButton) this.findViewById(R.id.btn_profile);
         edtComposeContent = (EditText) this.findViewById(R.id.edt_compose_content);
         btnAttach = (Button) this.findViewById(R.id.btn_attach);
         btnPost = (Button) this.findViewById(R.id.btn_post);
@@ -108,9 +104,12 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         btnComposePost.setOnClickListener(this);
         btnPost.setOnClickListener(this);
         btnAttach.setOnClickListener(this);
-        vgrMain.setOnClickListener(this);
         btnLeft.setOnClickListener(this);
         btnRight.setOnClickListener(this);
+        vgrCompose.setOnClickListener(this);
+        btnProfile.setOnClickListener(this);
+
+        registerForContextMenu(btnAttach);
     }
 
     public void closeAllDrawer() {
@@ -143,9 +142,8 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
             imm.hideSoftInputFromWindow(edtComposeContent.getWindowToken(), 0);
 
         } else if (v.getId() == R.id.btn_attach) {
-            Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            startActivityForResult(i, 1);
-        } else if (v.getId() == R.id.vgr_main) {
+            openContextMenu(btnAttach);
+        } else if (v.getId() == R.id.vgr_compose) {
             if (vgrCompose.getVisibility() == View.VISIBLE) {
                 InputMethodManager imm = (InputMethodManager) getSystemService(
                         Context.INPUT_METHOD_SERVICE);
@@ -157,6 +155,42 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
             mDrawerLayout.openDrawer(Gravity.START);
         } else if (v.getId() == R.id.btn_right) {
             mDrawerLayout.openDrawer(Gravity.END);
+        } else if (v.getId() == R.id.btn_profile) {
+            startActivity(new Intent(this, ProfileActivity.class));
+        }
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                                    ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_video_photo_storage, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        switch (item.getItemId()) {
+            case R.id.menu_photo:
+                Intent intent1 = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(intent1, 1);
+
+                return true;
+            case R.id.menu_video:
+                Intent intent2 = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+                startActivityForResult(intent2, 2);
+
+                return true;
+            case R.id.menu_existing_file:
+                Intent intent3 = new Intent(Intent.ACTION_GET_CONTENT);
+                intent3.setType("image/*");
+                intent3.setType("video/*");
+                startActivityForResult(intent3, 3);
+
+                return true;
+            default:
+                return super.onContextItemSelected(item);
         }
     }
 }

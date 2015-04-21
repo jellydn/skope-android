@@ -7,12 +7,18 @@ package com.productsway.skope;
  * Copyright (c) 2015 San Vo. All right reserved.
  */
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.ContextMenu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -25,19 +31,19 @@ import com.productsway.skope.interfaces.ICommentable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class UserDetailActivity extends CustomActivity implements View.OnClickListener, ICommentable {
+public class ProfileActivity extends CustomActivity implements View.OnClickListener, ICommentable {
     private ExpandableHeightListView lstPosts;
-    private TextView tvNumberOfPosts;
     private View vgrCompose;
     private EditText edtComposeContent;
     private Button btnPost;
+    private TextView tvUsername, btnEditName, btnChangePicture;
 
     private PostsAdapter mPostsAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_user_detail);
+        setContentView(R.layout.activity_profile);
 
         initData();
         initControls();
@@ -78,28 +84,35 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
         mComments.put(mPosts.get(2), comingSoon);
 
         mPostsAdapter = new PostsAdapter(this, mPosts, mComments, this);
+        mPostsAdapter.isShowPostDate(true);
     }
 
     @Override
     public void initControls() {
         lstPosts = (ExpandableHeightListView) this.findViewById(R.id.lst_posts);
-        tvNumberOfPosts = (TextView) this.findViewById(R.id.tv_number_of_posts);
         vgrCompose = this.findViewById(R.id.vgr_compose);
         btnPost = (Button) this.findViewById(R.id.btn_post);
         edtComposeContent = (EditText) this.findViewById(R.id.edt_compose_content);
+        tvUsername = (TextView) this.findViewById(R.id.tv_username);
+        btnEditName = (TextView) this.findViewById(R.id.btn_edit_name);
+        btnChangePicture = (TextView) this.findViewById(R.id.btn_change_picture);
 
         mPostsAdapter.setParent(lstPosts);
         lstPosts.setAdapter(mPostsAdapter);
         lstPosts.setExpanded(true);
 
         //TODO temp data
-        tvNumberOfPosts.setText("User 1");
+        tvUsername.setText("San Vo");
     }
 
     @Override
     public void initListeners() {
         btnPost.setOnClickListener(this);
         vgrCompose.setOnClickListener(this);
+        btnEditName.setOnClickListener(this);
+        btnChangePicture.setOnClickListener(this);
+
+        registerForContextMenu(btnChangePicture);
     }
 
     @Override
@@ -120,6 +133,26 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
 
                 vgrCompose.setVisibility(View.GONE);
             }
+        } else if (v.getId() == R.id.btn_edit_name) {
+            final EditText input = new EditText(this);
+            input.setSingleLine();
+            new AlertDialog.Builder(ProfileActivity.this)
+                .setTitle("Change username")
+                .setMessage("Please input new username")
+                .setView(input)
+                .setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        String newName = input.getText().toString();
+                        if(!newName.isEmpty())
+                            tvUsername.setText(newName);
+                    }
+                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    }
+                }
+            ).show();
+        } else if (v.getId() == R.id.btn_change_picture) {
+            openContextMenu(btnChangePicture);
         }
     }
 
@@ -127,5 +160,33 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
     public void showAddCommentBox() {
         vgrCompose.setVisibility(View.VISIBLE);
         edtComposeContent.requestFocus();
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                                    ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_photo_storage, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        switch (item.getItemId()) {
+            case R.id.menu_photo:
+                Intent intent1 = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(intent1, 1);
+
+                return true;
+            case R.id.menu_existing_file:
+                Intent intent2 = new Intent(Intent.ACTION_GET_CONTENT);
+                intent2.setType("image/*");
+                startActivityForResult(intent2, 3);
+
+                return true;
+            default:
+                return super.onContextItemSelected(item);
+        }
     }
 }

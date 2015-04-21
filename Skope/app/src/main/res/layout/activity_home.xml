@@ -4,7 +4,6 @@
     android:layout_height="match_parent">
 
     <RelativeLayout
-        android:id="@+id/vgr_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/bg_dashboard">
@@ -185,6 +184,7 @@
             android:background="@drawable/ic_btn_message_list" />
 
         <ImageButton
+            android:id="@+id/btn_profile"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
@@ -192,36 +192,41 @@
             android:layout_margin="16dp"
             android:background="@drawable/temp_avatar" />
 
-        <LinearLayout
+        <RelativeLayout
             android:id="@+id/vgr_compose"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:background="#f6f6f6"
-            android:orientation="horizontal"
-            android:padding="8dp"
+            android:layout_height="match_parent"
             android:visibility="gone">
 
-            <Button
-                android:id="@+id/btn_attach"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Attach" />
+                android:layout_alignParentBottom="true"
+                android:background="#f6f6f6"
+                android:orientation="horizontal"
+                android:padding="8dp">
 
-            <EditText
-                android:id="@+id/edt_compose_content"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_margin="4dp"
-                android:layout_weight="2"
-                android:singleLine="true" />
+                <Button
+                    android:id="@+id/btn_attach"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Attach" />
 
-            <Button
-                android:id="@+id/btn_post"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Post" />
-        </LinearLayout>
+                <EditText
+                    android:id="@+id/edt_compose_content"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_margin="4dp"
+                    android:layout_weight="2"
+                    android:singleLine="true" />
+
+                <Button
+                    android:id="@+id/btn_post"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Post" />
+            </LinearLayout>
+        </RelativeLayout>
 
         <include
             android:id="@+id/vgr_help"
@@ -233,6 +238,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:background="@android:color/background_light">
+
         <fragment
             android:id="@+id/user_fragment"
             android:name="com.productsway.skope.fragments.UsersFragment"
@@ -245,6 +251,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="end"
         android:background="@android:color/background_light">
+
         <fragment
             android:id="@+id/user_feed"
             android:name="com.productsway.skope.fragments.FeedFragment"

@@ -1,16 +1,19 @@
 package com.productsway.skope.adapters;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
 
 import com.productsway.skope.R;
 import com.productsway.skope.custom.ExpandableHeightListView;
+import com.productsway.skope.fragments.FeedFragment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,12 +29,14 @@ public class FeedAdapter extends BaseExpandableListAdapter {
     private ArrayList<String> mPosts;
     private HashMap<String, ArrayList<String>> mComments;
     private ExpandableListView mParent;
+    private FeedFragment mFragment;
 
     public FeedAdapter(Context context, ArrayList<String> posts,
-                       HashMap<String, ArrayList<String>> comments) {
+                       HashMap<String, ArrayList<String>> comments, FeedFragment fragment) {
         this.mContext = context;
         this.mPosts = posts;
         this.mComments = comments;
+        this.mFragment = fragment;
     }
 
     @Override
@@ -86,6 +91,7 @@ public class FeedAdapter extends BaseExpandableListAdapter {
             holder.btnCommentExpand = (TextView) viewToUse.findViewById(R.id.btn_comment_expand);
             holder.tvPostDistance = (TextView) viewToUse.findViewById(R.id.tv_post_distance);
             holder.tvPostContent = (TextView) viewToUse.findViewById(R.id.tv_post_content);
+            holder.btnComment = (Button) viewToUse.findViewById(R.id.btn_comment);
             viewToUse.setTag(holder);
         } else {
             viewToUse = convertView;
@@ -100,6 +106,12 @@ public class FeedAdapter extends BaseExpandableListAdapter {
                 if (FeedAdapter.this.mParent.isGroupExpanded(groupPosition))
                     FeedAdapter.this.mParent.collapseGroup(groupPosition);
                 else FeedAdapter.this.mParent.expandGroup(groupPosition, true);
+            }
+        });
+        holder.btnComment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mFragment.showAddCommentBox();
             }
         });
 
@@ -153,7 +165,7 @@ public class FeedAdapter extends BaseExpandableListAdapter {
         TextView btnCommentExpand;
         TextView tvPostDistance;
         TextView tvPostContent;
-        boolean isExpand;
+        Button btnComment;
     }
 
     private class CommentViewHolder {
