@@ -44,9 +44,6 @@ public class ExpandableHeightListView extends ExpandableListView
         {
             int expandSpec = MeasureSpec.makeMeasureSpec(Integer.MAX_VALUE >> 2, MeasureSpec.AT_MOST);
             super.onMeasure(widthMeasureSpec, expandSpec);
-
-            ViewGroup.LayoutParams params = getLayoutParams();
-            params.height = getMeasuredHeight();
         }
         else
         {

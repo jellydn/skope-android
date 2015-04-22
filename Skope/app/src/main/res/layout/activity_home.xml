@@ -199,6 +199,7 @@
             android:visibility="gone">
 
             <LinearLayout
+                android:id="@+id/vgr_compose_input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
@@ -226,6 +227,13 @@
                     android:layout_height="wrap_content"
                     android:text="Post" />
             </LinearLayout>
+
+            <com.productsway.skope.custom.HorizontalListView
+                android:id="@+id/lst_compose_preview"
+                android:layout_width="match_parent"
+                android:layout_height="90dp"
+                android:layout_above="@id/vgr_compose_input"
+                android:background="#aaf6f6f6"/>
         </RelativeLayout>
 
         <include

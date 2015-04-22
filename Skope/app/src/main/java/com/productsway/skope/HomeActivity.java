@@ -19,10 +19,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -30,9 +32,11 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.productsway.skope.adapters.ComposePreviewAdapter;
 import com.productsway.skope.custom.CircularPick;
 import com.productsway.skope.custom.CircularPickChangeListener;
 import com.productsway.skope.custom.CustomActivity;
+import com.productsway.skope.custom.HorizontalListView;
 import com.productsway.skope.utils.MeasureUtil;
 
 public class HomeActivity extends CustomActivity implements View.OnClickListener, CircularPickChangeListener {
@@ -45,6 +49,7 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
     private Button btnAttach, btnPost;
     private ImageButton btnLeft, btnRight;
     private DrawerLayout mDrawerLayout;
+    private HorizontalListView lstComposePreview;
 
     private int mCurrentRadius;
 
@@ -78,6 +83,7 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         btnPost = (Button) this.findViewById(R.id.btn_post);
         btnLeft = (ImageButton) this.findViewById(R.id.btn_left);
         btnRight = (ImageButton) this.findViewById(R.id.btn_right);
+        lstComposePreview = (HorizontalListView) this.findViewById(R.id.lst_compose_preview);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 
         googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
@@ -95,6 +101,19 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         tvRadius.setText(String.format("%d km", 1));
         tvUsers.setText("14");
         tvPosts.setText("12");
+
+
+        String[] values = new String[] { "Android", "iPhone", "WindowsMobile",
+                "Blackberry", "WebOS", "Ubuntu", "Windows7", "Max OS X",
+                "Linux", "OS/2" };
+        ComposePreviewAdapter adapter1 = new ComposePreviewAdapter(getApplicationContext(),values);
+        lstComposePreview.setAdapter(adapter1);
+        lstComposePreview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(getApplicationContext(),((ComposePreviewAdapter)parent.getAdapter()).getItem(position).toString(),Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
