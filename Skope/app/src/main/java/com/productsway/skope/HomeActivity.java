@@ -39,7 +39,7 @@ import com.productsway.skope.custom.CustomActivity;
 import com.productsway.skope.custom.HorizontalListView;
 import com.productsway.skope.utils.MeasureUtil;
 
-public class HomeActivity extends CustomActivity implements View.OnClickListener, CircularPickChangeListener {
+public class HomeActivity extends CustomActivity implements View.OnClickListener, CircularPickChangeListener, AdapterView.OnItemClickListener {
     private TextView tvUsers, tvPosts, tvRadius;
     private GoogleMap googleMap;
     private CircularPick circularPick;
@@ -47,10 +47,11 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
     private ImageButton btnComposePost, btnProfile;
     private EditText edtComposeContent;
     private Button btnAttach, btnPost;
-    private ImageButton btnLeft, btnRight;
+    private ImageButton btnLeft, btnRight, btnMessage;
     private DrawerLayout mDrawerLayout;
     private HorizontalListView lstComposePreview;
 
+    ComposePreviewAdapter mComposePreviewAdapter;
     private int mCurrentRadius;
 
     @Override
@@ -65,7 +66,7 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
 
     @Override
     public void initData() {
-
+        mComposePreviewAdapter = new ComposePreviewAdapter(getApplicationContext());
     }
 
     @Override
@@ -78,6 +79,7 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         vgrCompose = this.findViewById(R.id.vgr_compose);
         btnComposePost = (ImageButton) this.findViewById(R.id.btn_compose_post);
         btnProfile = (ImageButton) this.findViewById(R.id.btn_profile);
+        btnMessage = (ImageButton) this.findViewById(R.id.btn_message);
         edtComposeContent = (EditText) this.findViewById(R.id.edt_compose_content);
         btnAttach = (Button) this.findViewById(R.id.btn_attach);
         btnPost = (Button) this.findViewById(R.id.btn_post);
@@ -102,18 +104,7 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         tvUsers.setText("14");
         tvPosts.setText("12");
 
-
-        String[] values = new String[] { "Android", "iPhone", "WindowsMobile",
-                "Blackberry", "WebOS", "Ubuntu", "Windows7", "Max OS X",
-                "Linux", "OS/2" };
-        ComposePreviewAdapter adapter1 = new ComposePreviewAdapter(getApplicationContext(),values);
-        lstComposePreview.setAdapter(adapter1);
-        lstComposePreview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(getApplicationContext(),((ComposePreviewAdapter)parent.getAdapter()).getItem(position).toString(),Toast.LENGTH_SHORT).show();
-            }
-        });
+        lstComposePreview.setAdapter(mComposePreviewAdapter);
     }
 
     @Override
@@ -127,6 +118,8 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         btnRight.setOnClickListener(this);
         vgrCompose.setOnClickListener(this);
         btnProfile.setOnClickListener(this);
+        btnMessage.setOnClickListener(this);
+        lstComposePreview.setOnItemClickListener(this);
 
         registerForContextMenu(btnAttach);
     }
@@ -154,6 +147,8 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
             edtComposeContent.requestFocus();
         } else if (v.getId() == R.id.btn_post) {
             vgrCompose.setVisibility(View.GONE);
+            lstComposePreview.setVisibility(View.GONE);
+            mComposePreviewAdapter.reset();
             edtComposeContent.setText("");
 
             InputMethodManager imm = (InputMethodManager) getSystemService(
@@ -176,6 +171,8 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
             mDrawerLayout.openDrawer(Gravity.END);
         } else if (v.getId() == R.id.btn_profile) {
             startActivity(new Intent(this, ProfileActivity.class));
+        } else if (v.getId() == R.id.btn_message) {
+            startActivity(new Intent(this, MessagesActivity.class));
         }
     }
 
@@ -210,6 +207,23 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
                 return true;
             default:
                 return super.onContextItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        ((ComposePreviewAdapter) parent.getAdapter()).removeItem(position);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(resultCode==RESULT_OK) {
+            lstComposePreview.setVisibility(View.VISIBLE);
+
+            //TODO temp data
+            mComposePreviewAdapter.addItem("TEMP");
         }
     }
 }

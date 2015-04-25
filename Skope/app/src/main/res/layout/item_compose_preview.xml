@@ -1,11 +1,17 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_width="90dp"
+    android:layout_height="90dp">
 
     <ImageView
         android:id="@+id/tv_comment_content"
         android:layout_width="90dp"
-        android:src="@drawable/common_signin_btn_icon_light"
-        android:layout_height="90dp"/>
+        android:layout_height="90dp"
+        android:src="@drawable/common_ic_googleplayservices" />
 
+    <Button
+        android:background="@drawable/ic_btn_cancel"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true" />
 </RelativeLayout>

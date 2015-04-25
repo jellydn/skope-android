@@ -30,7 +30,7 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
     private TextView tvNumberOfPosts;
     private View vgrCompose;
     private EditText edtComposeContent;
-    private Button btnPost;
+    private Button btnPost, btnSendMessage;
 
     private PostsAdapter mPostsAdapter;
 
@@ -86,6 +86,7 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
         tvNumberOfPosts = (TextView) this.findViewById(R.id.tv_number_of_posts);
         vgrCompose = this.findViewById(R.id.vgr_compose);
         btnPost = (Button) this.findViewById(R.id.btn_post);
+        btnSendMessage = (Button) this.findViewById(R.id.btn_send_message);
         edtComposeContent = (EditText) this.findViewById(R.id.edt_compose_content);
 
         mPostsAdapter.setParent(lstPosts);
@@ -100,6 +101,7 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
     public void initListeners() {
         btnPost.setOnClickListener(this);
         vgrCompose.setOnClickListener(this);
+        btnSendMessage.setOnClickListener(this);
     }
 
     @Override
@@ -120,6 +122,8 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
 
                 vgrCompose.setVisibility(View.GONE);
             }
+        } else if (v.getId() == R.id.btn_send_message) {
+            startActivity(new Intent(this, MessageDetailActivity.class));
         }
     }
 

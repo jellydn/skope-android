@@ -140,7 +140,7 @@
             android:layout_width="260dp"
             android:layout_height="260dp"
             android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
+            android:layout_centerInParent="true"
             android:layout_marginBottom="73dp">
 
             <com.productsway.skope.custom.CircleViewGroup
@@ -176,6 +176,7 @@
             android:background="@drawable/btn_compose_post" />
 
         <ImageButton
+            android:id="@+id/btn_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
@@ -233,7 +234,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="90dp"
                 android:layout_above="@id/vgr_compose_input"
-                android:background="#aaf6f6f6"/>
+                android:background="#aaf6f6f6"
+                android:visibility="gone" />
         </RelativeLayout>
 
         <include

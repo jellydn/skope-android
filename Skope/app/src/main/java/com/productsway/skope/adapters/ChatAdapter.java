@@ -17,11 +17,11 @@ import java.util.ArrayList;
  * Created by Vo Hoang San - hoangsan.762@gmai.com
  * Copyright (c) 2015 San Vo. All right reserved.
  */
-public class ComposePreviewAdapter extends BaseAdapter {
+public class ChatAdapter extends BaseAdapter {
     private Context context;
     private ArrayList mData;
 
-    public ComposePreviewAdapter(Context context) {
+    public ChatAdapter(Context context) {
         super();
         this.context = context;
         mData = new ArrayList();
@@ -50,7 +50,12 @@ public class ComposePreviewAdapter extends BaseAdapter {
         if (convertView == null) {
             LayoutInflater inflater = (LayoutInflater) context
                     .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-            viewToUse = inflater.inflate(R.layout.item_compose_preview, null);
+
+            //TODO temp data
+            if(position %3==0)
+                viewToUse = inflater.inflate(R.layout.item_chat_left, null);
+            else
+                viewToUse = inflater.inflate(R.layout.item_chat_right, null);
 
             holder = new ViewHolder();
             //holder.titleText = (TextView)viewToUse.findViewById(R.id.titleTextView);
@@ -78,11 +83,6 @@ public class ComposePreviewAdapter extends BaseAdapter {
 
     public void removeItem(int pos) {
         mData.remove(pos);
-        notifyDataSetChanged();
-    }
-
-    public void reset() {
-        mData.clear();
         notifyDataSetChanged();
     }
 }

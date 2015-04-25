@@ -162,7 +162,7 @@ public class CircularPick extends View {
             markPointX = startPointX;
             markPointY = startPointY;
         }
-Log.d("SAN","AA "+markPointX);
+
         rect.set(left, top, right, bottom);
     }
 
@@ -177,7 +177,7 @@ Log.d("SAN","AA "+markPointX);
     }
 
     private void drawMarker(Canvas canvas) {
-        Log.d("SAN","BB "+markPointX);
+
         float drawableX = markPointX - (progressMark.getWidth() / 2);
         float drawableY = markPointY - (progressMark.getWidth() / 2);
 
@@ -218,7 +218,7 @@ Log.d("SAN","AA "+markPointX);
 
             this.markPointX = (float) (cx + outerRadius * Math.cos(newAngle - (Math.PI /2)));
             this.markPointY = (float) (cy + outerRadius * Math.sin(newAngle - (Math.PI /2)));
-            Log.d("SAN","CC "+markPointX);
+
             float degrees = (float) ((float) ((Math.toDegrees(newAngle) + 360.0)) % 360.0);
             if (degrees < 0) {
                 degrees += 2 * Math.PI;
