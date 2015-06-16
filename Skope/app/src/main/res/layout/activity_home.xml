@@ -143,7 +143,7 @@
             android:layout_centerInParent="true"
             android:layout_marginBottom="73dp">
 
-            <com.productsway.skope.custom.CircleViewGroup
+            <com.speakgeo.skopebeta.custom.CircleViewGroup
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_margin="20dp">
@@ -153,14 +153,14 @@
                     android:name="com.google.android.gms.maps.MapFragment"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
-            </com.productsway.skope.custom.CircleViewGroup>
+            </com.speakgeo.skopebeta.custom.CircleViewGroup>
 
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:src="@drawable/bg_circular_pick_progress" />
 
-            <com.productsway.skope.custom.CircularPick
+            <com.speakgeo.skopebeta.custom.CircularPick
                 android:id="@+id/clp_zoom"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
@@ -229,7 +229,7 @@
                     android:text="Post" />
             </LinearLayout>
 
-            <com.productsway.skope.custom.HorizontalListView
+            <com.speakgeo.skopebeta.custom.HorizontalListView
                 android:id="@+id/lst_compose_preview"
                 android:layout_width="match_parent"
                 android:layout_height="90dp"
@@ -251,7 +251,7 @@
 
         <fragment
             android:id="@+id/user_fragment"
-            android:name="com.productsway.skope.fragments.UsersFragment"
+            android:name="com.speakgeo.skopebeta.fragments.UsersFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </RelativeLayout>
@@ -264,7 +264,7 @@
 
         <fragment
             android:id="@+id/user_feed"
-            android:name="com.productsway.skope.fragments.FeedFragment"
+            android:name="com.speakgeo.skopebeta.fragments.FeedFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </RelativeLayout>

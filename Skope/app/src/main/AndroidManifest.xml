@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.productsway.skope">
+    package="com.speakgeo.skopebeta">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -41,7 +41,7 @@
             android:label="@string/app_name" />
 
         <activity
-            android:name=".LaunchActivity"
+            android:name="com.speakgeo.skopebeta.LaunchActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -50,23 +50,23 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".HomeActivity"
+            android:name="com.speakgeo.skopebeta.HomeActivity"
             android:hardwareAccelerated="false"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".LoginActivity"
+            android:name="com.speakgeo.skopebeta.LoginActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".UserDetailActivity"
+            android:name="com.speakgeo.skopebeta.UserDetailActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".ProfileActivity"
+            android:name="com.speakgeo.skopebeta.ProfileActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".MessagesActivity"
+            android:name="com.speakgeo.skopebeta.MessagesActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".MessageDetailActivity"
+            android:name="com.speakgeo.skopebeta.MessageDetailActivity"
             android:screenOrientation="portrait" />
     </application>
 

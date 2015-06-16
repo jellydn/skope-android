@@ -40,7 +40,7 @@
         android:layout_above="@id/vgr_compose" />
 
 
-    <com.productsway.skope.custom.HorizontalListView
+    <com.speakgeo.skopebeta.custom.HorizontalListView
         android:id="@+id/lst_compose_preview"
         android:layout_width="match_parent"
         android:layout_height="90dp"
