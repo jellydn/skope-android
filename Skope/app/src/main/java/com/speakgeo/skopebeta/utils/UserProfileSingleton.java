@@ -22,10 +22,10 @@ public class UserProfileSingleton {
 
 	private static UserProfileSingleton mInstance = null;
 
-	private String mFBAcessToken;
+	private String mAccessToken;
 
 	//
-	private static final String FB_ACCESS_TOKEN = "FB_ACCESS_TOKEN";
+	private static final String ACCESS_TOKEN = "ACCESS_TOKEN";
 
 	public static synchronized UserProfileSingleton getConfig(Context context) {
 		if (mInstance == null) {
@@ -38,16 +38,16 @@ public class UserProfileSingleton {
 		mSettings = context.getSharedPreferences(PREFERENCES, 0);
 		mEditor = mSettings.edit();
 
-		mFBAcessToken = mSettings.getString(FB_ACCESS_TOKEN, "");
+		mAccessToken = mSettings.getString(ACCESS_TOKEN, "");
 	}
 
-	public String getFBAcessToken() {
-		return mFBAcessToken;
+	public String getAccessToken() {
+		return mAccessToken;
 	}
 
-	public void setFbAccessToken(String v) {
-        mFBAcessToken = v;
-		mEditor.putString(FB_ACCESS_TOKEN, v);
+	public void setAccessToken(String v) {
+        mAccessToken = v;
+		mEditor.putString(ACCESS_TOKEN, v);
 		mEditor.commit();
 	}
 }

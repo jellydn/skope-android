@@ -9,9 +9,12 @@ package com.speakgeo.skopebeta;
 
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Gravity;
 import android.view.MenuInflater;
@@ -23,12 +26,19 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.speakgeo.skopebeta.adapters.ComposePreviewAdapter;
 import com.speakgeo.skopebeta.custom.CircularPick;
@@ -36,8 +46,14 @@ import com.speakgeo.skopebeta.custom.CircularPickChangeListener;
 import com.speakgeo.skopebeta.custom.CustomActivity;
 import com.speakgeo.skopebeta.custom.HorizontalListView;
 import com.speakgeo.skopebeta.utils.MeasureUtil;
+import com.speakgeo.skopebeta.utils.UserProfileSingleton;
+import com.speakgeo.skopebeta.webservices.PostWSObject;
+import com.speakgeo.skopebeta.webservices.UserWSObject;
+import com.speakgeo.skopebeta.webservices.objects.LoginResponse;
+import com.speakgeo.skopebeta.webservices.objects.SearchPostResponse;
+import com.speakgeo.skopebeta.webservices.objects.SearchUserResponse;
 
-public class HomeActivity extends CustomActivity implements View.OnClickListener, CircularPickChangeListener, AdapterView.OnItemClickListener {
+public class HomeActivity extends CustomActivity implements View.OnClickListener, CircularPickChangeListener, AdapterView.OnItemClickListener, GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener {
     private TextView tvUsers, tvPosts, tvRadius;
     private GoogleMap googleMap;
     private CircularPick circularPick;
@@ -49,8 +65,16 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
     private DrawerLayout mDrawerLayout;
     private HorizontalListView lstComposePreview;
 
+    private GoogleApiClient mGoogleApiClient;
+    LocationRequest mLocationRequest;
+    private Marker mCurrentMark;
+    private LatLng mLastLocation;
+
     ComposePreviewAdapter mComposePreviewAdapter;
     private int mCurrentRadius;
+
+    private SearchUserTask mSearchUserTask;
+    private SearchPostTask mSearchPostTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,10 +84,14 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         initData();
         initControls();
         initListeners();
+
+        buildGoogleApiClient();
     }
 
     @Override
     public void initData() {
+        mLastLocation = new LatLng(15.8907709f,108.3219069f);
+
         mComposePreviewAdapter = new ComposePreviewAdapter(getApplicationContext());
     }
 
@@ -88,19 +116,18 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
 
         googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
 
-        //TODO temp data
         circularPick.setProgress(1);
         circularPick.setMaxProgress(101);
         if (null != googleMap) {
-            googleMap.addMarker(new MarkerOptions()
-                            .position(new LatLng(15.8893392, 108.3205417)).anchor(0.5f, 0.5f)
+            mCurrentMark = googleMap.addMarker(new MarkerOptions()
+                            .position(mLastLocation).anchor(0.5f, 0.5f)
                             .draggable(false).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_map_pin))
             );
         }
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(15.8893392, 108.3205417), MeasureUtil.calculateZoomLevel(this, 1)));
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLastLocation, MeasureUtil.calculateZoomLevel(this, 1)));
         tvRadius.setText(String.format("%d km", 1));
-        tvUsers.setText("14");
-        tvPosts.setText("12");
+        tvUsers.setText("0");
+        tvPosts.setText("0");
 
         lstComposePreview.setAdapter(mComposePreviewAdapter);
     }
@@ -122,6 +149,23 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         registerForContextMenu(btnAttach);
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (mGoogleApiClient.isConnected()) {
+            stopLocationUpdates();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mGoogleApiClient.isConnected()) {
+            startLocationUpdates();
+        }
+    }
+
     public void closeAllDrawer() {
         mDrawerLayout.closeDrawers();
     }
@@ -130,10 +174,7 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
     public void onProgressChange(CircularPick view, int newProgress) {
         mCurrentRadius = newProgress == 0 ? 1 : newProgress;
 
-        //TODO temp data
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(15.8893392, 108.3205417), MeasureUtil.calculateZoomLevel(this, newProgress)));
-
-        tvRadius.setText(String.format("%d km", mCurrentRadius));
+        updateCurrentLocationGUI(mLastLocation);
     }
 
     @Override
@@ -222,6 +263,127 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
 
             //TODO temp data
             mComposePreviewAdapter.addItem("TEMP");
+        }
+    }
+
+    /*------------- location -------------- */
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
+
+    protected void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+    }
+
+    protected void startLocationUpdates() {
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+    }
+
+    protected void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(
+                mGoogleApiClient, this);
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        updateCurrentLocationGUI(new LatLng(location.getLatitude(),location.getLongitude()));
+        createLocationRequest();
+        startLocationUpdates();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d("SAN","HomeActivity-onConnectionSuspended");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.d("SAN","HomeActivity-onConnectionFailed: "+connectionResult.toString());
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        updateCurrentLocationGUI(new LatLng(location.getLatitude(),location.getLongitude()));
+    }
+
+    private void updateCurrentLocationGUI(LatLng location) {
+        mLastLocation = location;
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLastLocation, MeasureUtil.calculateZoomLevel(this, mCurrentRadius)));
+        mCurrentMark.setPosition(mLastLocation);
+
+        tvRadius.setText(String.format("%d km", mCurrentRadius));
+
+
+        if(mSearchUserTask != null) mSearchUserTask.cancel(true);
+        mSearchUserTask = new SearchUserTask();
+        mSearchUserTask.execute();
+
+        if(mSearchPostTask != null) mSearchPostTask.cancel(true);
+        mSearchPostTask = new SearchPostTask();
+        mSearchPostTask.execute();
+    }
+
+    /*--------------- Tasks ----------------*/
+    private class SearchUserTask extends AsyncTask<Void, Void, SearchUserResponse> {
+
+        @Override
+        protected void onPreExecute() {
+            showLoadingBar();
+        };
+
+        @Override
+        protected SearchUserResponse doInBackground(Void... params) {
+            return UserWSObject
+                    .search(getApplicationContext(),mLastLocation.longitude,mLastLocation.latitude,mCurrentRadius,1,1);
+        }
+
+        @Override
+        protected void onPostExecute(SearchUserResponse result) {
+            super.onPostExecute(result);
+
+            if (!result.hasError()) {
+                tvUsers.setText(String.valueOf(result.getData().getTotal()));
+            } else {
+                Toast.makeText(getApplicationContext(), result.getData().getMessage(), Toast.LENGTH_LONG).show();
+            }
+
+            hideLoadingBar();
+        }
+    }
+
+    private class SearchPostTask extends AsyncTask<Void, Void, SearchPostResponse> {
+
+        @Override
+        protected void onPreExecute() {
+            showLoadingBar();
+        };
+
+        @Override
+        protected SearchPostResponse doInBackground(Void... params) {
+            return PostWSObject
+                    .search(getApplicationContext(),mLastLocation.longitude,mLastLocation.latitude,mCurrentRadius,1,1);
+        }
+
+        @Override
+        protected void onPostExecute(SearchPostResponse result) {
+            super.onPostExecute(result);
+
+            if (!result.hasError()) {
+                tvPosts.setText(String.valueOf(result.getData().getTotal()));
+            } else {
+                Toast.makeText(getApplicationContext(), result.getData().getMessage(), Toast.LENGTH_LONG).show();
+            }
+
+            hideLoadingBar();
         }
     }
 }

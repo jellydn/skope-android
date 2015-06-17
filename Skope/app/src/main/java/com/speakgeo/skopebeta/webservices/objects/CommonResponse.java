@@ -39,4 +39,12 @@ public class CommonResponse {
             return version;
         }
     }
+
+    public class Data {
+        private String message;
+
+        public String getMessage() {
+            return message;
+        }
+    }
 }

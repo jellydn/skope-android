@@ -22,7 +22,7 @@ public class LoginResponse extends CommonResponse {
         this.data = data;
     }
 
-    public class Data {
+    public class Data extends CommonResponse.Data{
         private AccessToken accessToken;
 
         public AccessToken getAccessToken() {

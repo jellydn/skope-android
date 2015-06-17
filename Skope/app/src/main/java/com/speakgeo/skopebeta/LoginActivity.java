@@ -44,6 +44,8 @@ public class LoginActivity extends CustomActivity {
         LoginManager.getInstance().registerCallback(callbackManager,  new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
+                if(mLoginFacebookTask != null) mLoginFacebookTask.cancel(true);
+
                 mLoginFacebookTask = new LoginFacebookTask();
                 mLoginFacebookTask.execute(loginResult.getAccessToken().getToken());
             }
@@ -92,7 +94,7 @@ public class LoginActivity extends CustomActivity {
         callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
-
+    /*--------------- Tasks ----------------*/
     private class LoginFacebookTask extends AsyncTask<String, Void, LoginResponse> {
 
         @Override
@@ -111,11 +113,11 @@ public class LoginActivity extends CustomActivity {
             super.onPostExecute(result);
 
             if (!result.hasError()) {
-                UserProfileSingleton.getConfig(getApplicationContext()).setFbAccessToken(result.getData().getAccessToken().getToken());
+                UserProfileSingleton.getConfig(getApplicationContext()).setAccessToken(result.getData().getAccessToken().getToken());
                 startActivity(new Intent(getApplicationContext(), HomeActivity.class));
                 finish();
             } else {
-                Toast.makeText(getApplicationContext(), result.getMeta().getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), result.getData().getMessage(), Toast.LENGTH_LONG).show();
             }
 
             hideLoadingBar();

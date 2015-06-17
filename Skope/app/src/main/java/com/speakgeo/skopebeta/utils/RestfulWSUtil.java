@@ -19,7 +19,9 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -36,35 +38,12 @@ public class RestfulWSUtil {
 		return new Scanner(inStream).useDelimiter("\\A").next();
 	}
 
-	public static String getSpecialChars(String input) {
-		String output = "";
-		output = input.replace("&amp;", "&");
-		output = input.replace("&lt;", "<");
-		output = input.replace("&gt;", ">");
-		output = input.replace("&quot;", "\"");
-		output = input.replace("&#39;", "'");
-		output = input.replace("&apos;", "'");
-		return output;
-
-	}
-
-	public static String processSpecialChars(String input) {
-		String output = "";
-		output = input.replace("&", "&amp;");
-		output = input.replace("<", "&lt;");
-		output = input.replace(">", "&gt;");
-		output = input.replace("\"", "&quot;");
-		output = input.replace("'", "&apos;");
-		return output;
-
-	}
-
 	public static String doPost(String url, List<NameValuePair> nameValuePairs)
 			throws ClientProtocolException, IOException {
 		String r = null;
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpPost request = new HttpPost(url);
-
+        Log.i("SAN", ">>REQUEST: " + url);
         request.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
 		HttpResponse response;
@@ -74,7 +53,7 @@ public class RestfulWSUtil {
 			if (entity != null) {
 				InputStream inStream = entity.getContent();
 				r = getResponseText(inStream);
-				Log.i("SAN", ">>RESPONSE: " + r);
+				Log.i("SAN", "<<RESPONSE: " + r);
                 inStream.close();
 			}
 		} catch (Exception e) {
@@ -82,4 +61,27 @@ public class RestfulWSUtil {
 		}
 		return r;
 	}
+
+    public static String doGet(String url, List<NameValuePair> nameValuePairs)
+            throws ClientProtocolException, IOException {
+        String r = null;
+        HttpClient httpclient = new DefaultHttpClient();
+        String lastUrl = url+"?"+URLEncodedUtils.format(nameValuePairs, "utf-8");
+        HttpGet request = new HttpGet(lastUrl);
+        Log.i("SAN", ">>REQUEST: " + lastUrl);
+        HttpResponse response;
+        try {
+            response = httpclient.execute(request);
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                InputStream inStream = entity.getContent();
+                r = getResponseText(inStream);
+                Log.i("SAN", "<<RESPONSE: " + r);
+                inStream.close();
+            }
+        } catch (Exception e) {
+            Log.e("SAN", "RestfulWSUtil/doPost: "+e.getMessage());
+        }
+        return r;
+    }
 }
