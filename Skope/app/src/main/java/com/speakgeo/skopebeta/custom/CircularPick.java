@@ -157,12 +157,13 @@ public class CircularPick extends View {
         startPointX = cx;
         startPointY = cy - outerRadius;
 
-        if(markPointX == 0) {
-            markPointX = startPointX;
-            markPointY = startPointY;
-        }
+        double newAngle = Math.toRadians(this.angle);
+        this.markPointX = (float) (cx + outerRadius * Math.cos(newAngle - (Math.PI /2)));
+        this.markPointY = (float) (cy + outerRadius * Math.sin(newAngle - (Math.PI /2)));
 
         rect.set(left, top, right, bottom);
+
+        invalidate();
     }
 
     @Override
@@ -267,6 +268,12 @@ public class CircularPick extends View {
 
         if(mDelegate != null)
             mDelegate.onProgressChange(this, this.progress);
+
+        double newAngle = Math.toRadians(this.angle);
+        this.markPointX = (float) (cx + outerRadius * Math.cos(newAngle - (Math.PI /2)));
+        this.markPointY = (float) (cy + outerRadius * Math.sin(newAngle - (Math.PI /2)));
+
+        invalidate();
     }
 
     /**

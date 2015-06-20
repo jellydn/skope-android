@@ -1,4 +1,4 @@
-package skope.productsway.com.skope;
+package com.speakgeo.skopebeta;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

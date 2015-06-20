@@ -6,8 +6,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.TextView;
 
 import com.speakgeo.skopebeta.R;
+import com.speakgeo.skopebeta.webservices.objects.User;
 
 import java.util.ArrayList;
 
@@ -19,12 +21,12 @@ import java.util.ArrayList;
  */
 public class UsersListAdapter extends BaseAdapter {
     private Context context;
-    private ArrayList mUsers = new ArrayList();
+    private ArrayList<User> mUsers;
 
-    public UsersListAdapter(Context context, ArrayList users) {
+    public UsersListAdapter(Context context) {
         super();
         this.context = context;
-        mUsers = users;
+        mUsers = new ArrayList<>();
     }
 
     @Override
@@ -53,14 +55,17 @@ public class UsersListAdapter extends BaseAdapter {
             viewToUse = inflater.inflate(R.layout.item_users, null);
 
             holder = new ViewHolder();
-            //holder.titleText = (TextView)viewToUse.findViewById(R.id.titleTextView);
+            holder.tvUserName = (TextView)viewToUse.findViewById(R.id.tv_username);
+            holder.tvDistance = (TextView)viewToUse.findViewById(R.id.tv_distance);
             viewToUse.setTag(holder);
         } else {
             viewToUse = convertView;
             holder = (ViewHolder) viewToUse.getTag();
         }
 
-        //holder.titleText.setText(item.getItemTitle());
+        holder.tvUserName.setText(mUsers.get(position).getName());
+        holder.tvDistance.setText(mUsers.get(position).getLocation().getDistance() + " km away");
+
         return viewToUse;
     }
 
@@ -68,6 +73,21 @@ public class UsersListAdapter extends BaseAdapter {
      * Holder for the list items.
      */
     private class ViewHolder{
-        //TextView titleText;
+        TextView tvUserName;
+        TextView tvDistance;
+    }
+
+    public void setData(ArrayList<User> users) {
+        this.mUsers = users;
+
+        this.notifyDataSetChanged();
+    }
+
+    public void addData(ArrayList<User> users) {
+        for(User user : users) {
+            mUsers.add(user);
+        }
+
+        this.notifyDataSetChanged();
     }
 }

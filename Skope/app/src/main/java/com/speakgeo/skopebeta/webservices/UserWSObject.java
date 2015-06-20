@@ -34,7 +34,7 @@ public class UserWSObject {
             nameValuePairs.add(new BasicNameValuePair("fb_token", fbAccessToken));
 
             String result = RestfulWSUtil.doPost(UserProfileSingleton.END_POINT
-                    + "user/auth", nameValuePairs);
+                    + "user/auth", nameValuePairs, null);
 
             Gson gson = new GsonBuilder().create();
             return gson.fromJson(result, LoginResponse.class);

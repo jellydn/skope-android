@@ -38,12 +38,13 @@ public class RestfulWSUtil {
 		return new Scanner(inStream).useDelimiter("\\A").next();
 	}
 
-	public static String doPost(String url, List<NameValuePair> nameValuePairs)
+	public static String doPost(String url, List<NameValuePair> nameValuePairs, List<NameValuePair> query)
 			throws ClientProtocolException, IOException {
 		String r = null;
 		HttpClient httpclient = new DefaultHttpClient();
-		HttpPost request = new HttpPost(url);
-        Log.i("SAN", ">>REQUEST: " + url);
+        String lastUrl = query==null ? url : url+"?"+URLEncodedUtils.format(query, "utf-8");
+		HttpPost request = new HttpPost(lastUrl);
+        Log.i("SAN", ">>REQUEST: " + lastUrl);
         request.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
 		HttpResponse response;

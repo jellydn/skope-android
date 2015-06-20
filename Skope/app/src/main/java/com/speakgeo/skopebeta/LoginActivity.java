@@ -8,8 +8,13 @@ package com.speakgeo.skopebeta;
  */
 
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -25,6 +30,7 @@ import com.speakgeo.skopebeta.utils.UserProfileSingleton;
 import com.speakgeo.skopebeta.webservices.UserWSObject;
 import com.speakgeo.skopebeta.webservices.objects.LoginResponse;
 
+import java.security.MessageDigest;
 import java.util.Arrays;
 
 public class LoginActivity extends CustomActivity {
@@ -40,6 +46,21 @@ public class LoginActivity extends CustomActivity {
         setContentView(R.layout.activity_login);
 
         FacebookSdk.sdkInitialize(getApplicationContext());
+
+        // Add code to print out the key hash
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(
+                    "com.speakgeo.skopebeta",
+                    PackageManager.GET_SIGNATURES);
+            for (Signature signature : info.signatures) {
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                Log.d("SAN", "KeyHash: "+Base64.encodeToString(md.digest(), Base64.DEFAULT));
+            }
+        } catch (Exception e) {
+            Log.d("SAN", "KeyHash Error: "+e.getMessage());
+        }
+
         callbackManager = CallbackManager.Factory.create();
         LoginManager.getInstance().registerCallback(callbackManager,  new FacebookCallback<LoginResult>() {
             @Override

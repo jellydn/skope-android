@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.speakgeo.skopebeta.utils.RestfulWSUtil;
 import com.speakgeo.skopebeta.utils.UserProfileSingleton;
+import com.speakgeo.skopebeta.webservices.objects.CommonResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchPostResponse;
 
 import org.apache.http.NameValuePair;
@@ -44,6 +45,27 @@ public class PostWSObject {
             return gson.fromJson(result, SearchPostResponse.class);
         } catch (Exception e) {
             Log.e("SAN", "PostWSObject/search: "+ e.getMessage());
+            return null;
+        }
+    }
+
+    public static CommonResponse post(Context context, String content, double longitude, double latitude) {
+        try {
+            List<NameValuePair> queries = new ArrayList<NameValuePair>(1);
+            queries.add(new BasicNameValuePair("access_token", UserProfileSingleton.getConfig(context).getAccessToken()));
+
+            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(3);
+            nameValuePairs.add(new BasicNameValuePair("latitude", String.valueOf(latitude)));
+            nameValuePairs.add(new BasicNameValuePair("longitude", String.valueOf(longitude)));
+            nameValuePairs.add(new BasicNameValuePair("content", content));
+
+            String result = RestfulWSUtil.doPost(UserProfileSingleton.END_POINT
+                    + "user/post", nameValuePairs, queries);
+
+            Gson gson = new GsonBuilder().create();
+            return gson.fromJson(result, CommonResponse.class);
+        } catch (Exception e) {
+            Log.e("SAN", "PostWSObject/post: "+ e.getMessage());
             return null;
         }
     }

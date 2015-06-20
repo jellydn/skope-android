@@ -7,6 +7,8 @@
 
 package com.speakgeo.skopebeta.webservices.objects;
 
+import java.util.ArrayList;
+
 /**
 * Response of Login API.
 *
@@ -26,6 +28,7 @@ public class SearchPostResponse extends CommonResponse {
         private int page;
         private int limit;
         private int total;
+        private ArrayList<Post> items;
 
         public int getPage() {
             return page;
@@ -37,6 +40,10 @@ public class SearchPostResponse extends CommonResponse {
 
         public int getTotal() {
             return total;
+        }
+
+        public ArrayList<Post> getItems() {
+            return items;
         }
     }
 }

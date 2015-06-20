@@ -238,6 +238,14 @@
                 android:visibility="gone" />
         </RelativeLayout>
 
+        <ProgressBar
+            android:id="@+id/prg_loading"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:visibility="gone" />
+
         <include
             android:id="@+id/vgr_help"
             layout="@layout/area_help" />

@@ -45,11 +45,12 @@ import com.speakgeo.skopebeta.custom.CircularPick;
 import com.speakgeo.skopebeta.custom.CircularPickChangeListener;
 import com.speakgeo.skopebeta.custom.CustomActivity;
 import com.speakgeo.skopebeta.custom.HorizontalListView;
+import com.speakgeo.skopebeta.fragments.UsersFragment;
 import com.speakgeo.skopebeta.utils.MeasureUtil;
 import com.speakgeo.skopebeta.utils.UserProfileSingleton;
 import com.speakgeo.skopebeta.webservices.PostWSObject;
 import com.speakgeo.skopebeta.webservices.UserWSObject;
-import com.speakgeo.skopebeta.webservices.objects.LoginResponse;
+import com.speakgeo.skopebeta.webservices.objects.CommonResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchPostResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchUserResponse;
 
@@ -65,16 +66,19 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
     private DrawerLayout mDrawerLayout;
     private HorizontalListView lstComposePreview;
 
+    private UsersFragment userFragment;
+
     private GoogleApiClient mGoogleApiClient;
     LocationRequest mLocationRequest;
     private Marker mCurrentMark;
     private LatLng mLastLocation;
+    private int mCurrentRadius;
 
     ComposePreviewAdapter mComposePreviewAdapter;
-    private int mCurrentRadius;
 
     private SearchUserTask mSearchUserTask;
     private SearchPostTask mSearchPostTask;
+    private PostTask mPostTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,12 +89,15 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         initControls();
         initListeners();
 
+        circularPick.setProgress(1);
+
         buildGoogleApiClient();
     }
 
     @Override
     public void initData() {
         mLastLocation = new LatLng(15.8907709f,108.3219069f);
+        mCurrentRadius = 1;
 
         mComposePreviewAdapter = new ComposePreviewAdapter(getApplicationContext());
     }
@@ -113,10 +120,17 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         btnRight = (ImageButton) this.findViewById(R.id.btn_right);
         lstComposePreview = (HorizontalListView) this.findViewById(R.id.lst_compose_preview);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-
         googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
 
-        circularPick.setProgress(1);
+        userFragment = (UsersFragment) this.getFragmentManager().findFragmentById(R.id.user_fragment);
+
+        //
+        if(UserProfileSingleton.getConfig(this).isFisrtTime()) {
+            vgrHelp.setVisibility(View.VISIBLE);
+            UserProfileSingleton.getConfig(this).setIsFisrtTime(false);
+        }
+
+        //
         circularPick.setMaxProgress(101);
         if (null != googleMap) {
             mCurrentMark = googleMap.addMarker(new MarkerOptions()
@@ -185,15 +199,11 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
             vgrCompose.setVisibility(View.VISIBLE);
             edtComposeContent.requestFocus();
         } else if (v.getId() == R.id.btn_post) {
-            vgrCompose.setVisibility(View.GONE);
-            lstComposePreview.setVisibility(View.GONE);
-            mComposePreviewAdapter.reset();
-            edtComposeContent.setText("");
-
-            InputMethodManager imm = (InputMethodManager) getSystemService(
-                    Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(edtComposeContent.getWindowToken(), 0);
-
+            if(!edtComposeContent.getText().toString().isEmpty()) {
+                if (mPostTask != null) mPostTask.cancel(true);
+                mPostTask = new PostTask();
+                mPostTask.execute(edtComposeContent.getText().toString());
+            }
         } else if (v.getId() == R.id.btn_attach) {
             openContextMenu(btnAttach);
         } else if (v.getId() == R.id.vgr_compose) {
@@ -343,7 +353,7 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         @Override
         protected SearchUserResponse doInBackground(Void... params) {
             return UserWSObject
-                    .search(getApplicationContext(),mLastLocation.longitude,mLastLocation.latitude,mCurrentRadius,1,1);
+                    .search(getApplicationContext(),mLastLocation.longitude,mLastLocation.latitude,mCurrentRadius,1,UserProfileSingleton.NUM_OF_USER_PER_PAGE);
         }
 
         @Override
@@ -352,6 +362,8 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
 
             if (!result.hasError()) {
                 tvUsers.setText(String.valueOf(result.getData().getTotal()));
+
+                userFragment.setUserData(result.getData().getItems(),result.getData().getTotal(),mLastLocation, mCurrentRadius);
             } else {
                 Toast.makeText(getApplicationContext(), result.getData().getMessage(), Toast.LENGTH_LONG).show();
             }
@@ -370,7 +382,7 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         @Override
         protected SearchPostResponse doInBackground(Void... params) {
             return PostWSObject
-                    .search(getApplicationContext(),mLastLocation.longitude,mLastLocation.latitude,mCurrentRadius,1,1);
+                    .search(getApplicationContext(),mLastLocation.longitude,mLastLocation.latitude,mCurrentRadius,1,UserProfileSingleton.NUM_OF_POST_PER_PAGE);
         }
 
         @Override
@@ -381,6 +393,43 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
                 tvPosts.setText(String.valueOf(result.getData().getTotal()));
             } else {
                 Toast.makeText(getApplicationContext(), result.getData().getMessage(), Toast.LENGTH_LONG).show();
+            }
+
+            hideLoadingBar();
+        }
+    }
+
+    private class PostTask extends AsyncTask<String, Void, CommonResponse> {
+
+        @Override
+        protected void onPreExecute() {
+            showLoadingBar();
+        };
+
+        @Override
+        protected CommonResponse doInBackground(String... params) {
+            return PostWSObject
+                    .post(getApplicationContext(), params[0], mLastLocation.longitude, mLastLocation.latitude);
+        }
+
+        @Override
+        protected void onPostExecute(CommonResponse result) {
+            super.onPostExecute(result);
+
+            if (!result.hasError()) {
+                vgrCompose.setVisibility(View.GONE);
+                lstComposePreview.setVisibility(View.GONE);
+                mComposePreviewAdapter.reset();
+
+                edtComposeContent.setText("");
+
+                InputMethodManager imm = (InputMethodManager) getSystemService(
+                        Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(edtComposeContent.getWindowToken(), 0);
+
+                Toast.makeText(getApplicationContext(), getString(R.string.post_success), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getApplicationContext(), result.getMeta().getMessage(), Toast.LENGTH_LONG).show();
             }
 
             hideLoadingBar();
