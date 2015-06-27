@@ -45,6 +45,7 @@ import com.speakgeo.skopebeta.custom.CircularPick;
 import com.speakgeo.skopebeta.custom.CircularPickChangeListener;
 import com.speakgeo.skopebeta.custom.CustomActivity;
 import com.speakgeo.skopebeta.custom.HorizontalListView;
+import com.speakgeo.skopebeta.fragments.FeedFragment;
 import com.speakgeo.skopebeta.fragments.UsersFragment;
 import com.speakgeo.skopebeta.utils.MeasureUtil;
 import com.speakgeo.skopebeta.utils.UserProfileSingleton;
@@ -67,6 +68,7 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
     private HorizontalListView lstComposePreview;
 
     private UsersFragment userFragment;
+    private FeedFragment postFragment;
 
     private GoogleApiClient mGoogleApiClient;
     LocationRequest mLocationRequest;
@@ -123,6 +125,7 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
 
         userFragment = (UsersFragment) this.getFragmentManager().findFragmentById(R.id.user_fragment);
+        postFragment = (FeedFragment) this.getFragmentManager().findFragmentById(R.id.user_feed);
 
         //
         if(UserProfileSingleton.getConfig(this).isFisrtTime()) {
@@ -391,6 +394,8 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
 
             if (!result.hasError()) {
                 tvPosts.setText(String.valueOf(result.getData().getTotal()));
+
+                postFragment.setFeedData(result.getData().getItems(),result.getData().getTotal(),mLastLocation, mCurrentRadius);
             } else {
                 Toast.makeText(getApplicationContext(), result.getData().getMessage(), Toast.LENGTH_LONG).show();
             }

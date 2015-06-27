@@ -1,6 +1,5 @@
 package com.speakgeo.skopebeta.fragments;
 
-import android.app.ListFragment;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -69,7 +68,9 @@ public class UsersFragment extends CustomListFragment implements IFragmentInitia
         super.onListItemClick(l, v, position, id);
 
         ((HomeActivity)getActivity()).closeAllDrawer();
-        getActivity().startActivity(new Intent(getActivity().getApplicationContext(),UserDetailActivity.class));
+        Intent intent = new Intent(getActivity().getApplicationContext(),UserDetailActivity.class);
+        intent.putExtra("USER",((UsersListAdapter)l.getAdapter()).getItem(position));
+        getActivity().startActivity(intent);
     }
 
     @Override

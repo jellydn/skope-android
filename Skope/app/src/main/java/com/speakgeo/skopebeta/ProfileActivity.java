@@ -11,6 +11,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.ContextMenu;
@@ -18,20 +19,23 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.speakgeo.skopebeta.adapters.PostsAdapter;
 import com.speakgeo.skopebeta.custom.CustomActivity;
 import com.speakgeo.skopebeta.custom.ExpandableHeightListView;
 import com.speakgeo.skopebeta.interfaces.ICommentable;
+import com.speakgeo.skopebeta.utils.UserProfileSingleton;
+import com.speakgeo.skopebeta.webservices.UserWSObject;
+import com.speakgeo.skopebeta.webservices.objects.SearchPostByUserResponse;
+import com.speakgeo.skopebeta.webservices.objects.User;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
-public class ProfileActivity extends CustomActivity implements View.OnClickListener, ICommentable {
+public class ProfileActivity extends CustomActivity implements View.OnClickListener, AbsListView.OnScrollListener, ICommentable {
     private ExpandableHeightListView lstPosts;
     private View vgrCompose;
     private EditText edtComposeContent;
@@ -39,6 +43,17 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
     private TextView tvUsername, btnEditName, btnChangePicture;
 
     private PostsAdapter mPostsAdapter;
+
+    private User mUser;
+    private int mTotalPost;
+    private int mCurrentPage;
+
+    private int currentFirstVisibleItem;
+    private int currentVisibleItemCount;
+    private int currentScrollState;
+    private boolean isLoading;
+
+    private GetPostTask mGetPostTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,42 +63,15 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
         initData();
         initControls();
         initListeners();
+
+        loadPostData();
     }
 
     @Override
     public void initData() {
-        //TODO temp data
-        ArrayList<String> mPosts = new ArrayList<String>();
-        HashMap<String, ArrayList<String>> mComments = new HashMap<String, ArrayList<String>>();
-        mPosts.add("Top 250");
-        mPosts.add("Now Showing");
-        mPosts.add("Coming Soon..");
-        ArrayList<String> top250 = new ArrayList<String>();
-        top250.add("The Shaw shank Redemption");
-        top250.add("The Godfather");
-        top250.add("The Godfather: Part II");
-        top250.add("Pulp Fiction");
-        top250.add("The Good, the Bad and the Ugly");
-        top250.add("The Dark Knight");
-        top250.add("12 Angry Men");
-        ArrayList<String> nowShowing = new ArrayList<String>();
-        nowShowing.add("The Conjuring");
-        nowShowing.add("Despicable Me 2");
-        nowShowing.add("Turbo");
-        nowShowing.add("Grown Ups 2");
-        nowShowing.add("Red 2");
-        nowShowing.add("The Wolverine");
-        ArrayList<String> comingSoon = new ArrayList<String>();
-        comingSoon.add("2 Guns");
-        comingSoon.add("The Smurfs 2");
-        comingSoon.add("The Spectacular Now");
-        comingSoon.add("The Canyons");
-        comingSoon.add("Europa Report");
-        mComments.put(mPosts.get(0), top250);
-        mComments.put(mPosts.get(1), nowShowing);
-        mComments.put(mPosts.get(2), comingSoon);
+        mUser = (User)this.getIntent().getSerializableExtra("USER");
 
-        mPostsAdapter = new PostsAdapter(this, mPosts, mComments, this);
+        mPostsAdapter = new PostsAdapter(this, this);
         mPostsAdapter.isShowPostDate(true);
     }
 
@@ -101,8 +89,7 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
         lstPosts.setAdapter(mPostsAdapter);
         lstPosts.setExpanded(true);
 
-        //TODO temp data
-        tvUsername.setText("San Vo");
+        tvUsername.setText(mUser.getName());
     }
 
     @Override
@@ -113,11 +100,14 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
         btnChangePicture.setOnClickListener(this);
 
         registerForContextMenu(btnChangePicture);
+
+        this.lstPosts.setOnScrollListener(this);
     }
 
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.btn_post) {
+            //TODO not done yet
             vgrCompose.setVisibility(View.GONE);
             edtComposeContent.setText("");
 
@@ -157,7 +147,7 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
     }
 
     @Override
-    public void showAddCommentBox() {
+    public void showAddCommentBox(int position) {
         vgrCompose.setVisibility(View.VISIBLE);
         edtComposeContent.requestFocus();
     }
@@ -187,6 +177,67 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
                 return true;
             default:
                 return super.onContextItemSelected(item);
+        }
+    }
+
+    public void loadPostData() {
+        mTotalPost = 0;
+        mCurrentPage = 0;
+
+        if(mGetPostTask != null) mGetPostTask.cancel(true);
+        mGetPostTask = new GetPostTask();
+        mGetPostTask.execute();
+    }
+
+    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+        this.currentFirstVisibleItem = firstVisibleItem;
+        this.currentVisibleItemCount = visibleItemCount;
+    }
+
+    public void onScrollStateChanged(AbsListView view, int scrollState) {
+        this.currentScrollState = scrollState;
+        this.isScrollCompleted();
+    }
+
+    private void isScrollCompleted() {
+        if (this.currentVisibleItemCount > 0 && this.currentScrollState == SCROLL_STATE_IDLE) {
+
+            if(!isLoading && mCurrentPage <= Math.ceil(mTotalPost/ UserProfileSingleton.NUM_OF_POST_PER_PAGE)) {
+                isLoading = true;
+                if(mGetPostTask != null) mGetPostTask.cancel(true);
+                mGetPostTask = new GetPostTask();
+                mGetPostTask.execute();
+            }
+        }
+    }
+
+    /*--------------- Tasks ----------------*/
+    private class GetPostTask extends AsyncTask<Void, Void, SearchPostByUserResponse> {
+
+        @Override
+        protected void onPreExecute() {
+            showLoadingBar();
+        };
+
+        @Override
+        protected SearchPostByUserResponse doInBackground(Void... params) {
+            return UserWSObject.searchPostByUser(getApplicationContext(), mUser.getId(), mCurrentPage++, UserProfileSingleton.NUM_OF_POST_PER_PAGE);
+        }
+
+        @Override
+        protected void onPostExecute(SearchPostByUserResponse result) {
+            super.onPostExecute(result);
+
+            if (!result.hasError()) {
+                mPostsAdapter.addData(result.getData().getItems());
+
+                mTotalPost = result.getData().getTotal();
+            } else {
+                Toast.makeText(getApplicationContext(), result.getData().getMessage(), Toast.LENGTH_LONG).show();
+            }
+
+            isLoading = false;
+            hideLoadingBar();
         }
     }
 }

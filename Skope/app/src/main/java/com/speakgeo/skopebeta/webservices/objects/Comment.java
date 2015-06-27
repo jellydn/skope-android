@@ -24,27 +24,4 @@ public class Comment {
     public ArrayList<CommentItem> getItems() {
         return items;
     }
-
-    public class CommentItem {
-        private String id;
-        private String content;
-        private User user;
-        private long created_at;
-
-        public String getId() {
-            return id;
-        }
-
-        public String getContent() {
-            return content;
-        }
-
-        public User getUser() {
-            return user;
-        }
-
-        public long getCreated_at() {
-            return created_at;
-        }
-    }
 }

@@ -18,6 +18,8 @@ import com.google.gson.GsonBuilder;
 import com.speakgeo.skopebeta.utils.RestfulWSUtil;
 import com.speakgeo.skopebeta.utils.UserProfileSingleton;
 import com.speakgeo.skopebeta.webservices.objects.LoginResponse;
+import com.speakgeo.skopebeta.webservices.objects.SearchPostByUserResponse;
+import com.speakgeo.skopebeta.webservices.objects.SearchPostResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchUserResponse;
 
 import java.util.ArrayList;
@@ -61,6 +63,24 @@ public class UserWSObject {
             return gson.fromJson(result, SearchUserResponse.class);
         } catch (Exception e) {
             Log.e("SAN", "UserWSObject/search: "+ e.getMessage());
+            return null;
+        }
+    }
+
+    public static SearchPostByUserResponse searchPostByUser(Context context, String userId, int page, int limit) {
+        try {
+            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(3);
+            nameValuePairs.add(new BasicNameValuePair("access_token", UserProfileSingleton.getConfig(context).getAccessToken()));
+            nameValuePairs.add(new BasicNameValuePair("page", String.valueOf(page)));
+            nameValuePairs.add(new BasicNameValuePair("limit", String.valueOf(limit)));
+
+            String result = RestfulWSUtil.doGet(UserProfileSingleton.END_POINT
+                    + "user/"+userId+"/post", nameValuePairs);
+
+            Gson gson = new GsonBuilder().create();
+            return gson.fromJson(result, SearchPostByUserResponse.class);
+        } catch (Exception e) {
+            Log.e("SAN", "UserWSObject/searchPostByUser: "+ e.getMessage());
             return null;
         }
     }

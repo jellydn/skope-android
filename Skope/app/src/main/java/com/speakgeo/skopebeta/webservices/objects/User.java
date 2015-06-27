@@ -7,11 +7,13 @@
 
 package com.speakgeo.skopebeta.webservices.objects;
 
+import java.io.Serializable;
+
 /**
 * Response of Login API.
 *
 */
-public class User {
+public class User implements Serializable {
     private String id;
     private String name;
     private String avatar;

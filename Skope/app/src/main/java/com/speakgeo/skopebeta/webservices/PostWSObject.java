@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.speakgeo.skopebeta.utils.RestfulWSUtil;
 import com.speakgeo.skopebeta.utils.UserProfileSingleton;
+import com.speakgeo.skopebeta.webservices.objects.CommentResponse;
 import com.speakgeo.skopebeta.webservices.objects.CommonResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchPostResponse;
 
@@ -66,6 +67,44 @@ public class PostWSObject {
             return gson.fromJson(result, CommonResponse.class);
         } catch (Exception e) {
             Log.e("SAN", "PostWSObject/post: "+ e.getMessage());
+            return null;
+        }
+    }
+
+    public static CommentResponse comment(Context context, String content, String postId) {
+        try {
+            List<NameValuePair> queries = new ArrayList<NameValuePair>(1);
+            queries.add(new BasicNameValuePair("access_token", UserProfileSingleton.getConfig(context).getAccessToken()));
+
+            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);
+            nameValuePairs.add(new BasicNameValuePair("content", content));
+
+            String result = RestfulWSUtil.doPost(UserProfileSingleton.END_POINT
+                    + "post/"+postId+"/comment", nameValuePairs, queries);
+
+            Gson gson = new GsonBuilder().create();
+            return gson.fromJson(result, CommentResponse.class);
+        } catch (Exception e) {
+            Log.e("SAN", "PostWSObject/comment: "+ e.getMessage());
+            return null;
+        }
+    }
+
+    public static CommonResponse vote(Context context, boolean isLike, String postId) {
+        try {
+            List<NameValuePair> queries = new ArrayList<NameValuePair>(1);
+            queries.add(new BasicNameValuePair("access_token", UserProfileSingleton.getConfig(context).getAccessToken()));
+
+            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);
+            nameValuePairs.add(new BasicNameValuePair("type", isLike?"like":"dislike"));
+
+            String result = RestfulWSUtil.doPost(UserProfileSingleton.END_POINT
+                    + "post/"+postId+"/vote", nameValuePairs, queries);
+
+            Gson gson = new GsonBuilder().create();
+            return gson.fromJson(result, CommonResponse.class);
+        } catch (Exception e) {
+            Log.e("SAN", "PostWSObject/vote: "+ e.getMessage());
             return null;
         }
     }

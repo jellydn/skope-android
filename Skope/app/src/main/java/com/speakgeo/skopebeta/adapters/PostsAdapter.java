@@ -13,9 +13,12 @@ import android.widget.TextView;
 import com.speakgeo.skopebeta.R;
 import com.speakgeo.skopebeta.custom.ExpandableHeightListView;
 import com.speakgeo.skopebeta.interfaces.ICommentable;
+import com.speakgeo.skopebeta.webservices.objects.Post;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Date;
 
 /**
  * Skope
@@ -25,18 +28,15 @@ import java.util.HashMap;
  */
 public class PostsAdapter extends BaseExpandableListAdapter {
     private Context mContext;
-    private ArrayList<String> mPosts;
-    private HashMap<String, ArrayList<String>> mComments;
+    private ArrayList<Post> mPosts;
     private ExpandableListView mParent;
     private ICommentable mCommentableActivity;
 
     private boolean mIsShowPostDate;
 
-    public PostsAdapter(Context context, ArrayList<String> posts,
-                        HashMap<String, ArrayList<String>> comments, ICommentable commentableActivity) {
+    public PostsAdapter(Context context, ICommentable commentableActivity) {
         this.mContext = context;
-        this.mPosts = posts;
-        this.mComments = comments;
+        this.mPosts = new ArrayList<>();
         this.mCommentableActivity = commentableActivity;
 
         mIsShowPostDate = false;
@@ -49,8 +49,7 @@ public class PostsAdapter extends BaseExpandableListAdapter {
 
     @Override
     public int getChildrenCount(int groupPosition) {
-        return this.mComments.get(this.mPosts.get(groupPosition))
-                .size();
+        return this.mPosts.get(groupPosition).getComment().getItems().size();
     }
 
     @Override
@@ -60,8 +59,7 @@ public class PostsAdapter extends BaseExpandableListAdapter {
 
     @Override
     public Object getChild(int groupPosition, int childPosition) {
-        return this.mComments.get(this.mPosts.get(groupPosition))
-                .get(childPosition);
+        return this.mPosts.get(groupPosition).getComment().getItems().get(childPosition);
     }
 
     @Override
@@ -80,7 +78,7 @@ public class PostsAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+    public View getGroupView(final int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
         PostViewHolder holder = null;
         View viewToUse = null;
 
@@ -121,16 +119,17 @@ public class PostsAdapter extends BaseExpandableListAdapter {
         holder.btnComment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCommentableActivity.showAddCommentBox();
+                mCommentableActivity.showAddCommentBox(groupPosition);
             }
         });
 
-        //TODO temp data
-        holder.tvPostContent.setText(this.mPosts.get(groupPosition));
-        holder.tvPostDistance.setText(String.format("Posted %d km away", (int) (100 * Math.random())));
-        holder.btnCommentExpand.setText(String.format("Comments (%d)", this.mComments.get(this.mPosts.get(groupPosition))
-                .size()));
-        holder.tvPostDate.setText("31 December, 2015");
+        holder.tvPostContent.setText(this.mPosts.get(groupPosition).getContent());
+        holder.tvPostDistance.setText(String.format("Posted %d km away", (int)(Double.parseDouble(this.mPosts.get(groupPosition).getLocation().getDistance()) * Math.random())));
+        holder.btnCommentExpand.setText(String.format("Comments (%d)", this.mPosts.get(groupPosition).getComment().getItems().size()));
+
+        DateFormat sdf = new SimpleDateFormat("dd MM, yyyy");
+        Date netDate = (new Date(this.mPosts.get(groupPosition).getCreated_at()));
+        holder.tvPostDate.setText(sdf.format(netDate));
         return viewToUse;
     }
 
@@ -152,8 +151,7 @@ public class PostsAdapter extends BaseExpandableListAdapter {
             holder = (CommentViewHolder) viewToUse.getTag();
         }
 
-        //TODO temp data
-        holder.tvCommentContent.setText(this.mComments.get(this.mPosts.get(groupPosition)).get(childPosition));
+        holder.tvCommentContent.setText(this.mPosts.get(groupPosition).getComment().getItems().get(childPosition).getContent());
 
         return viewToUse;
     }
@@ -184,5 +182,19 @@ public class PostsAdapter extends BaseExpandableListAdapter {
 
     private class CommentViewHolder {
         TextView tvCommentContent;
+    }
+
+    public void setData(ArrayList<Post> posts) {
+        this.mPosts = posts;
+
+        this.notifyDataSetChanged();
+    }
+
+    public void addData(ArrayList<Post> posts) {
+        for(Post p : posts) {
+            mPosts.add(p);
+        }
+
+        this.notifyDataSetChanged();
     }
 }

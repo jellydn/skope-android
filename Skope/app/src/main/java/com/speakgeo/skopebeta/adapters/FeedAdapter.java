@@ -12,9 +12,10 @@ import android.widget.TextView;
 
 import com.speakgeo.skopebeta.R;
 import com.speakgeo.skopebeta.fragments.FeedFragment;
+import com.speakgeo.skopebeta.webservices.objects.CommentItem;
+import com.speakgeo.skopebeta.webservices.objects.Post;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Skope
@@ -24,16 +25,13 @@ import java.util.HashMap;
  */
 public class FeedAdapter extends BaseExpandableListAdapter {
     private Context mContext;
-    private ArrayList<String> mPosts;
-    private HashMap<String, ArrayList<String>> mComments;
+    private ArrayList<Post> mPosts;
     private ExpandableListView mParent;
     private FeedFragment mFragment;
 
-    public FeedAdapter(Context context, ArrayList<String> posts,
-                       HashMap<String, ArrayList<String>> comments, FeedFragment fragment) {
+    public FeedAdapter(Context context, FeedFragment fragment) {
         this.mContext = context;
-        this.mPosts = posts;
-        this.mComments = comments;
+        this.mPosts = new ArrayList<>();
         this.mFragment = fragment;
     }
 
@@ -44,19 +42,17 @@ public class FeedAdapter extends BaseExpandableListAdapter {
 
     @Override
     public int getChildrenCount(int groupPosition) {
-        return this.mComments.get(this.mPosts.get(groupPosition))
-                .size();
+        return this.mPosts.get(groupPosition).getComment().getItems().size();
     }
 
     @Override
-    public Object getGroup(int groupPosition) {
+    public Post getGroup(int groupPosition) {
         return this.mPosts.get(groupPosition);
     }
 
     @Override
     public Object getChild(int groupPosition, int childPosition) {
-        return this.mComments.get(this.mPosts.get(groupPosition))
-                .get(childPosition);
+        return this.mPosts.get(groupPosition).getComment().getItems().get(childPosition);
     }
 
     @Override
@@ -75,7 +71,7 @@ public class FeedAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+    public View getGroupView(final int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
         PostViewHolder holder = null;
         View viewToUse = null;
 
@@ -109,16 +105,14 @@ public class FeedAdapter extends BaseExpandableListAdapter {
         holder.btnComment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mFragment.showAddCommentBox();
+                mFragment.showAddCommentBox(groupPosition);
             }
         });
 
-        //TODO temp data
-        holder.tvUserName.setText("User 1");
-        holder.tvPostContent.setText(this.mPosts.get(groupPosition));
-        holder.tvPostDistance.setText(String.format("Posted %d km away", (int)(100 * Math.random())));
-        holder.btnCommentExpand.setText(String.format("Comments (%d)", this.mComments.get(this.mPosts.get(groupPosition))
-                .size()));
+        holder.tvUserName.setText(this.mPosts.get(groupPosition).getUser().getName());
+        holder.tvPostContent.setText(this.mPosts.get(groupPosition).getContent());
+        holder.tvPostDistance.setText(String.format("Posted %d km away", (int) (Double.parseDouble(this.mPosts.get(groupPosition).getLocation().getDistance()) * Math.random())));
+        holder.btnCommentExpand.setText(String.format("Comments (%d)", this.mPosts.get(groupPosition).getComment().getItems().size()));
         return viewToUse;
     }
 
@@ -140,8 +134,7 @@ public class FeedAdapter extends BaseExpandableListAdapter {
             holder = (CommentViewHolder) viewToUse.getTag();
         }
 
-        //TODO temp data
-        holder.tvCommentContent.setText(this.mComments.get(this.mPosts.get(groupPosition)).get(childPosition));
+        holder.tvCommentContent.setText(this.mPosts.get(groupPosition).getComment().getItems().get(childPosition).getContent());
 
         return viewToUse;
     }
@@ -168,5 +161,25 @@ public class FeedAdapter extends BaseExpandableListAdapter {
 
     private class CommentViewHolder {
         TextView tvCommentContent;
+    }
+
+    public void setData(ArrayList<Post> posts) {
+        this.mPosts = posts;
+
+        this.notifyDataSetChanged();
+    }
+
+    public void addData(ArrayList<Post> posts) {
+        for(Post p : posts) {
+            mPosts.add(p);
+        }
+
+        this.notifyDataSetChanged();
+    }
+
+    public void addComment(int mGroupPos, CommentItem comment) {
+        mPosts.get(mGroupPos).getComment().getItems().add(comment);
+
+        this.notifyDataSetChanged();
     }
 }

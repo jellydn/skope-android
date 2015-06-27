@@ -1,22 +1,31 @@
 package com.speakgeo.skopebeta.fragments;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
+import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.speakgeo.skopebeta.R;
 import com.speakgeo.skopebeta.adapters.FeedAdapter;
-import com.speakgeo.skopebeta.custom.CustomFragment;
+import com.speakgeo.skopebeta.custom.CustomListFragment;
 import com.speakgeo.skopebeta.interfaces.ICommentable;
+import com.speakgeo.skopebeta.utils.UserProfileSingleton;
+import com.speakgeo.skopebeta.webservices.PostWSObject;
+import com.speakgeo.skopebeta.webservices.objects.CommentResponse;
+import com.speakgeo.skopebeta.webservices.objects.CommonResponse;
+import com.speakgeo.skopebeta.webservices.objects.Post;
+import com.speakgeo.skopebeta.webservices.objects.SearchPostResponse;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Skope
@@ -24,13 +33,30 @@ import java.util.HashMap;
  * Created by Vo Hoang San - hoangsan.762@gmai.com
  * Copyright (c) 2015 San Vo. All right reserved.
  */
-public class FeedFragment extends CustomFragment implements View.OnClickListener, ICommentable{
+public class FeedFragment extends CustomListFragment implements View.OnClickListener, ICommentable, AbsListView.OnScrollListener{
     private ExpandableListView lstMain;
     private View vgrCompose;
     private EditText edtComposeContent;
     private Button btnPost;
 
     private FeedAdapter mFeedAdapter;
+
+    private LatLng mLastLocation;
+    private int mCurrentRadius;
+
+    private int mCurrentSelectedPostPos;
+
+    private int mTotalPost;
+    private int mCurrentPage;
+
+    private int currentFirstVisibleItem;
+    private int currentVisibleItemCount;
+    private int currentScrollState;
+    private boolean isLoading;
+
+    private SearchPostTask mSearchPostTask;
+    private CommentTask mCommentTask;
+    private VoteTask mVoteTask;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -52,43 +78,16 @@ public class FeedFragment extends CustomFragment implements View.OnClickListener
 
     @Override
     public void initData() {
-        //TODO temp data
-        ArrayList<String> mPosts = new ArrayList<String>();
-        HashMap<String, ArrayList<String>> mComments = new HashMap<String, ArrayList<String>>();
-        mPosts.add("Top 250");
-        mPosts.add("Now Showing");
-        mPosts.add("Coming Soon.. Coming Soon.. Coming Soon.. Coming Soon.. Coming Soon.. Coming Soon.. Coming Soon.. Coming Soon..");
-        ArrayList<String> top250 = new ArrayList<String>();
-        top250.add("The Shaw shank Redemption");
-        top250.add("The Godfather");
-        top250.add("The Godfather: Part II");
-        top250.add("Pulp Fiction");
-        top250.add("The Good, the Bad and the Ugly. The Good, the Bad and the Ugly. The Good, the Bad and the Ugly");
-        top250.add("The Dark Knight");
-        top250.add("12 Angry Men");
-        ArrayList<String> nowShowing = new ArrayList<String>();
-        nowShowing.add("The Conjuring");
-        nowShowing.add("Despicable Me 2");
-        nowShowing.add("Turbo");
-        nowShowing.add("Grown Ups 2");
-        nowShowing.add("Red 2");
-        nowShowing.add("The Wolverine");
-        ArrayList<String> comingSoon = new ArrayList<String>();
-        comingSoon.add("2 Guns");
-        comingSoon.add("The Smurfs 2");
-        comingSoon.add("The Spectacular Now");
-        comingSoon.add("The Canyons");
-        comingSoon.add("Europa Report");
-        mComments.put(mPosts.get(0), top250);
-        mComments.put(mPosts.get(1), nowShowing);
-        mComments.put(mPosts.get(2), comingSoon);
-
-        mFeedAdapter = new FeedAdapter(getActivity(),mPosts,mComments, this);
+        mFeedAdapter = new FeedAdapter(getActivity(), this);
     }
 
     @Override
     public void initControls(View container) {
+        super.initControls(container);
+
         lstMain = (ExpandableListView) container.findViewById(R.id.list_main);
+        this.mainList = lstMain;
+
         vgrCompose = container.findViewById(R.id.vgr_compose);
         btnPost = (Button) container.findViewById(R.id.btn_post);
         edtComposeContent = (EditText) container.findViewById(R.id.edt_compose_content);
@@ -101,17 +100,18 @@ public class FeedFragment extends CustomFragment implements View.OnClickListener
     public void initListeners() {
         btnPost.setOnClickListener(this);
         vgrCompose.setOnClickListener(this);
+
+        this.lstMain.setOnScrollListener(this);
     }
 
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.btn_post) {
-            vgrCompose.setVisibility(View.GONE);
-            edtComposeContent.setText("");
+            if(edtComposeContent.getText().toString().isEmpty()) return;
 
-            InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(
-                    Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(edtComposeContent.getWindowToken(), 0);
+            if(mCommentTask != null) mCommentTask.cancel(true);
+            mCommentTask = new CommentTask(mCurrentSelectedPostPos);
+            mCommentTask.execute(edtComposeContent.getText().toString(),mFeedAdapter.getGroup(mCurrentSelectedPostPos).getId());
 
         } else if (v.getId() == R.id.vgr_compose) {
             if (vgrCompose.getVisibility() == View.VISIBLE) {
@@ -124,9 +124,140 @@ public class FeedFragment extends CustomFragment implements View.OnClickListener
         }
     }
 
+    public void setFeedData(ArrayList<Post> posts, int total, LatLng lastLocation, int currentRadius) {
+        mFeedAdapter.setData(posts);
+
+        mTotalPost = total;
+        mLastLocation = lastLocation;
+        mCurrentRadius = currentRadius;
+        mCurrentPage = 1;
+    }
+
     @Override
-    public void showAddCommentBox() {
+    public void showAddCommentBox(int position) {
+        mCurrentSelectedPostPos = position;
+
         vgrCompose.setVisibility(View.VISIBLE);
         edtComposeContent.requestFocus();
+    }
+
+    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+        this.currentFirstVisibleItem = firstVisibleItem;
+        this.currentVisibleItemCount = visibleItemCount;
+    }
+
+    public void onScrollStateChanged(AbsListView view, int scrollState) {
+        this.currentScrollState = scrollState;
+        this.isScrollCompleted();
+    }
+
+    private void isScrollCompleted() {
+        if (this.currentVisibleItemCount > 0 && this.currentScrollState == SCROLL_STATE_IDLE) {
+
+            if(!isLoading && mCurrentPage <= Math.ceil(mTotalPost/ UserProfileSingleton.NUM_OF_POST_PER_PAGE)) {
+                isLoading = true;
+                if(mSearchPostTask != null) mSearchPostTask.cancel(true);
+                mSearchPostTask = new SearchPostTask();
+                mSearchPostTask.execute();
+            }
+        }
+    }
+
+    /*--------------- Tasks ----------------*/
+    private class SearchPostTask extends AsyncTask<Void, Void, SearchPostResponse> {
+
+        @Override
+        protected void onPreExecute() {
+            showLoadingBar();
+        };
+
+        @Override
+        protected SearchPostResponse doInBackground(Void... params) {
+            return PostWSObject
+                    .search(getActivity(), mLastLocation.longitude, mLastLocation.latitude, mCurrentRadius, mCurrentPage++, UserProfileSingleton.NUM_OF_POST_PER_PAGE);
+        }
+
+        @Override
+        protected void onPostExecute(SearchPostResponse result) {
+            super.onPostExecute(result);
+
+            if (!result.hasError()) {
+                mFeedAdapter.addData(result.getData().getItems());
+                mTotalPost = result.getData().getTotal();
+            } else {
+                Toast.makeText(getActivity(), result.getData().getMessage(), Toast.LENGTH_LONG).show();
+            }
+
+            isLoading = false;
+            hideLoadingBar();
+        }
+    }
+
+    private class CommentTask extends AsyncTask<String, Void, CommentResponse> {
+        private int mGroupPos;
+
+        public CommentTask(int groupPos) {
+            mGroupPos = groupPos;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            showLoadingBar();
+        };
+
+        @Override
+        protected CommentResponse doInBackground(String... params) {
+            return PostWSObject
+                    .comment(getActivity(),params[0],params[1]);//content, post id
+        }
+
+        @Override
+        protected void onPostExecute(CommentResponse result) {
+            super.onPostExecute(result);
+
+            if (!result.hasError()) {
+                vgrCompose.setVisibility(View.GONE);
+                edtComposeContent.setText("");
+
+                InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(
+                        Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(edtComposeContent.getWindowToken(), 0);
+
+                mFeedAdapter.addComment(mGroupPos, result.getData().getComment());
+            } else {
+                Toast.makeText(getActivity(), result.getMeta().getMessage(), Toast.LENGTH_LONG).show();
+            }
+
+            isLoading = false;
+            hideLoadingBar();
+        }
+    }
+
+    private class VoteTask extends AsyncTask<String, Void, CommonResponse> {
+
+        @Override
+        protected void onPreExecute() {
+            showLoadingBar();
+        };
+
+        @Override
+        protected CommonResponse doInBackground(String... params) {
+            return PostWSObject
+                    .vote(getActivity(), Boolean.parseBoolean(params[0]), params[1]);//type, post id
+        }
+
+        @Override
+        protected void onPostExecute(CommonResponse result) {
+            super.onPostExecute(result);
+
+            if (!result.hasError()) {
+                //TODO Update GUI
+            } else {
+                Toast.makeText(getActivity(), result.getMeta().getMessage(), Toast.LENGTH_LONG).show();
+            }
+
+            isLoading = false;
+            hideLoadingBar();
+        }
     }
 }
