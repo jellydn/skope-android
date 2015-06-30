@@ -24,6 +24,7 @@ import com.speakgeo.skopebeta.webservices.objects.CommentResponse;
 import com.speakgeo.skopebeta.webservices.objects.CommonResponse;
 import com.speakgeo.skopebeta.webservices.objects.Post;
 import com.speakgeo.skopebeta.webservices.objects.SearchPostResponse;
+import com.speakgeo.skopebeta.webservices.objects.VoteResponse;
 
 import java.util.ArrayList;
 
@@ -85,7 +86,7 @@ public class FeedFragment extends CustomListFragment implements View.OnClickList
     public void initControls(View container) {
         super.initControls(container);
 
-        lstMain = (ExpandableListView) container.findViewById(R.id.list_main);
+        lstMain = (ExpandableListView) container.findViewById(android.R.id.list);
         this.mainList = lstMain;
 
         vgrCompose = container.findViewById(R.id.vgr_compose);
@@ -112,7 +113,6 @@ public class FeedFragment extends CustomListFragment implements View.OnClickList
             if(mCommentTask != null) mCommentTask.cancel(true);
             mCommentTask = new CommentTask(mCurrentSelectedPostPos);
             mCommentTask.execute(edtComposeContent.getText().toString(),mFeedAdapter.getGroup(mCurrentSelectedPostPos).getId());
-
         } else if (v.getId() == R.id.vgr_compose) {
             if (vgrCompose.getVisibility() == View.VISIBLE) {
                 InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(
@@ -139,6 +139,24 @@ public class FeedFragment extends CustomListFragment implements View.OnClickList
 
         vgrCompose.setVisibility(View.VISIBLE);
         edtComposeContent.requestFocus();
+    }
+
+    @Override
+    public void like(int position) {
+        mCurrentSelectedPostPos = position;
+
+        if(mVoteTask != null) mVoteTask.cancel(true);
+        mVoteTask = new VoteTask(mCurrentSelectedPostPos);
+        mVoteTask.execute("true",mFeedAdapter.getGroup(mCurrentSelectedPostPos).getId());
+    }
+
+    @Override
+    public void dislike(int position) {
+        mCurrentSelectedPostPos = position;
+
+        if(mVoteTask != null) mVoteTask.cancel(true);
+        mVoteTask = new VoteTask(mCurrentSelectedPostPos);
+        mVoteTask.execute("false",mFeedAdapter.getGroup(mCurrentSelectedPostPos).getId());
     }
 
     public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
@@ -233,7 +251,12 @@ public class FeedFragment extends CustomListFragment implements View.OnClickList
         }
     }
 
-    private class VoteTask extends AsyncTask<String, Void, CommonResponse> {
+    private class VoteTask extends AsyncTask<String, Void, VoteResponse> {
+        private int mGroupPos;
+
+        public VoteTask(int groupPos) {
+            mGroupPos = groupPos;
+        }
 
         @Override
         protected void onPreExecute() {
@@ -241,17 +264,19 @@ public class FeedFragment extends CustomListFragment implements View.OnClickList
         };
 
         @Override
-        protected CommonResponse doInBackground(String... params) {
+        protected VoteResponse doInBackground(String... params) {
             return PostWSObject
                     .vote(getActivity(), Boolean.parseBoolean(params[0]), params[1]);//type, post id
         }
 
         @Override
-        protected void onPostExecute(CommonResponse result) {
+        protected void onPostExecute(VoteResponse result) {
             super.onPostExecute(result);
 
             if (!result.hasError()) {
-                //TODO Update GUI
+                mFeedAdapter.updateVote(mGroupPos, result.getData().getPost());
+
+                Toast.makeText(getActivity(), result.getData().getMessage(), Toast.LENGTH_LONG).show();
             } else {
                 Toast.makeText(getActivity(), result.getMeta().getMessage(), Toast.LENGTH_LONG).show();
             }

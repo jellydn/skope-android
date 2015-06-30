@@ -2,13 +2,19 @@ package com.speakgeo.skopebeta.adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.speakgeo.skopebeta.R;
+import com.speakgeo.skopebeta.utils.imageloader.ImageLoaderSingleton;
+import com.speakgeo.skopebeta.utils.imageloader.listeners.OnCompletedDownloadListener;
+import com.speakgeo.skopebeta.utils.imageloader.objects.Option;
 import com.speakgeo.skopebeta.webservices.objects.User;
 
 import java.util.ArrayList;
@@ -57,6 +63,8 @@ public class UsersListAdapter extends BaseAdapter {
             holder = new ViewHolder();
             holder.tvUserName = (TextView)viewToUse.findViewById(R.id.tv_username);
             holder.tvDistance = (TextView)viewToUse.findViewById(R.id.tv_distance);
+            holder.imgAvatar = (ImageView)viewToUse.findViewById(R.id.img_avatar);
+            holder.prgLoading = (ProgressBar)viewToUse.findViewById(R.id.prg_loading);
             viewToUse.setTag(holder);
         } else {
             viewToUse = convertView;
@@ -65,6 +73,14 @@ public class UsersListAdapter extends BaseAdapter {
 
         holder.tvUserName.setText(mUsers.get(position).getName());
         holder.tvDistance.setText(mUsers.get(position).getLocation().getDistance() + " km away");
+
+        ImageLoaderSingleton.getInstance(context).load(mUsers.get(position).getAvatar(),mUsers.get(position).getId(),new OnCompletedDownloadListener() {
+            @Override
+            public void onComplete(View[] views, Bitmap bitmap) {
+                ((ImageView)views[0]).setImageBitmap(bitmap);
+                views[1].setVisibility(View.GONE);
+            }
+        },null, new Option(150,150),holder.imgAvatar,holder.prgLoading);
 
         return viewToUse;
     }
@@ -75,6 +91,8 @@ public class UsersListAdapter extends BaseAdapter {
     private class ViewHolder{
         TextView tvUserName;
         TextView tvDistance;
+        ImageView imgAvatar;
+        ProgressBar prgLoading;
     }
 
     public void setData(ArrayList<User> users) {

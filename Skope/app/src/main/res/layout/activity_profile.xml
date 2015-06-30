@@ -12,12 +12,24 @@
             android:gravity="center_horizontal"
             android:orientation="vertical">
 
-            <ImageView
+            <RelativeLayout
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:layout_marginTop="40dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/temp_avatar" />
+                android:layout_marginTop="40dp">
+
+                <ImageView
+                    android:id="@+id/img_avatar"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:scaleType="fitXY"/>
+
+                <ProgressBar
+                    android:id="@+id/prg_loading_img"
+                    style="?android:attr/progressBarStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"/>
+            </RelativeLayout>
 
             <TextView
                 android:id="@+id/btn_change_picture"

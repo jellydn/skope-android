@@ -8,4 +8,6 @@ package com.speakgeo.skopebeta.interfaces;
  */
 public interface ICommentable {
     public void showAddCommentBox(int position);
+    public void like(int position);
+    public void dislike(int position);
 }

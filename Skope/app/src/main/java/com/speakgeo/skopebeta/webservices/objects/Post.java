@@ -65,6 +65,14 @@ public class Post {
         return location;
     }
 
+    public void setLike(Like like) {
+        this.like = like;
+    }
+
+    public void setDislike(Dislike dislike) {
+        this.dislike = dislike;
+    }
+
     public class Like {
         private int total;
 

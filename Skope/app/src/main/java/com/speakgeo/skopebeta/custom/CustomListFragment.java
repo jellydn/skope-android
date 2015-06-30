@@ -28,8 +28,8 @@ public abstract class CustomListFragment extends ListFragment implements IFragme
 
     protected void hideLoadingBar() {
         if(mainList != null) {
-            View view = getActivity().getLayoutInflater().inflate(R.layout.footer, null);
-            mainList.removeFooterView(footer);
+            //View view = getActivity().getLayoutInflater().inflate(R.layout.footer, null);
+           // mainList.removeFooterView(footer);
         }
     }
 }

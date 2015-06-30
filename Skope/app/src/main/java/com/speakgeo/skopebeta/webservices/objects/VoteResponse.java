@@ -11,7 +11,7 @@ package com.speakgeo.skopebeta.webservices.objects;
 * Response of Login API.
 *
 */
-public class CommentResponse extends CommonResponse {
+public class VoteResponse extends CommonResponse {
     private Data data;
 
     public Data getData() {
@@ -23,10 +23,10 @@ public class CommentResponse extends CommonResponse {
     }
 
     public class Data extends CommonResponse.Data{
-        private CommentItem comment;
+        private Post post;
 
-        public CommentItem getComment() {
-            return comment;
+        public Post getPost() {
+            return post;
         }
     }
 }

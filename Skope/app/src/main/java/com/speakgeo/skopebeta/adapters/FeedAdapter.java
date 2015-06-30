@@ -2,16 +2,22 @@ package com.speakgeo.skopebeta.adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.Button;
 import android.widget.ExpandableListView;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.speakgeo.skopebeta.R;
 import com.speakgeo.skopebeta.fragments.FeedFragment;
+import com.speakgeo.skopebeta.utils.imageloader.ImageLoaderSingleton;
+import com.speakgeo.skopebeta.utils.imageloader.listeners.OnCompletedDownloadListener;
+import com.speakgeo.skopebeta.utils.imageloader.objects.Option;
 import com.speakgeo.skopebeta.webservices.objects.CommentItem;
 import com.speakgeo.skopebeta.webservices.objects.Post;
 
@@ -82,10 +88,16 @@ public class FeedAdapter extends BaseExpandableListAdapter {
 
             holder = new PostViewHolder();
             holder.tvUserName = (TextView) viewToUse.findViewById(R.id.tv_user_name);
+            holder.imgAvatar = (ImageView)viewToUse.findViewById(R.id.img_avatar);
+            holder.prgLoading = (ProgressBar)viewToUse.findViewById(R.id.prg_loading);
             holder.btnCommentExpand = (TextView) viewToUse.findViewById(R.id.btn_comment_expand);
             holder.tvPostDistance = (TextView) viewToUse.findViewById(R.id.tv_post_distance);
             holder.tvPostContent = (TextView) viewToUse.findViewById(R.id.tv_post_content);
             holder.btnComment = (Button) viewToUse.findViewById(R.id.btn_comment);
+            holder.tvLike = (TextView) viewToUse.findViewById(R.id.tv_like);
+            holder.tvDislike = (TextView) viewToUse.findViewById(R.id.tv_dislike);
+            holder.tvLikeClick = (TextView) viewToUse.findViewById(R.id.tv_like_click);
+            holder.tvDislikeClick = (TextView) viewToUse.findViewById(R.id.tv_dislike_click);
             viewToUse.setTag(holder);
         } else {
             viewToUse = convertView;
@@ -108,11 +120,34 @@ public class FeedAdapter extends BaseExpandableListAdapter {
                 mFragment.showAddCommentBox(groupPosition);
             }
         });
+        holder.tvLikeClick.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mFragment.like(groupPosition);
+            }
+        });
+        holder.tvDislikeClick.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mFragment.dislike(groupPosition);
+            }
+        });
 
         holder.tvUserName.setText(this.mPosts.get(groupPosition).getUser().getName());
         holder.tvPostContent.setText(this.mPosts.get(groupPosition).getContent());
         holder.tvPostDistance.setText(String.format("Posted %d km away", (int) (Double.parseDouble(this.mPosts.get(groupPosition).getLocation().getDistance()) * Math.random())));
         holder.btnCommentExpand.setText(String.format("Comments (%d)", this.mPosts.get(groupPosition).getComment().getItems().size()));
+        holder.tvLike.setText(String.valueOf(this.mPosts.get(groupPosition).getLike().getTotal()));
+        holder.tvDislike.setText(String.valueOf(this.mPosts.get(groupPosition).getDislike().getTotal()));
+
+        ImageLoaderSingleton.getInstance(mContext).load(mPosts.get(groupPosition).getUser().getAvatar(),mPosts.get(groupPosition).getUser().getId(),new OnCompletedDownloadListener() {
+            @Override
+            public void onComplete(View[] views, Bitmap bitmap) {
+                ((ImageView)views[0]).setImageBitmap(bitmap);
+                views[1].setVisibility(View.GONE);
+            }
+        },null, new Option(150,150),holder.imgAvatar,holder.prgLoading);
+
         return viewToUse;
     }
 
@@ -153,9 +188,15 @@ public class FeedAdapter extends BaseExpandableListAdapter {
      */
     private class PostViewHolder {
         TextView tvUserName;
+        ImageView imgAvatar;
+        ProgressBar prgLoading;
         TextView btnCommentExpand;
         TextView tvPostDistance;
         TextView tvPostContent;
+        TextView tvLike;
+        TextView tvDislike;
+        TextView tvLikeClick;
+        TextView tvDislikeClick;
         Button btnComment;
     }
 
@@ -179,6 +220,13 @@ public class FeedAdapter extends BaseExpandableListAdapter {
 
     public void addComment(int mGroupPos, CommentItem comment) {
         mPosts.get(mGroupPos).getComment().getItems().add(comment);
+
+        this.notifyDataSetChanged();
+    }
+
+    public void updateVote(int mGroupPos, Post post) {
+        mPosts.get(mGroupPos).setLike(post.getLike());
+        mPosts.get(mGroupPos).setDislike(post.getDislike());
 
         this.notifyDataSetChanged();
     }

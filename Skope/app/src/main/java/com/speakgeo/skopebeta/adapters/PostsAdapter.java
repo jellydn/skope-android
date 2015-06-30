@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.speakgeo.skopebeta.R;
 import com.speakgeo.skopebeta.custom.ExpandableHeightListView;
 import com.speakgeo.skopebeta.interfaces.ICommentable;
+import com.speakgeo.skopebeta.webservices.objects.CommentItem;
 import com.speakgeo.skopebeta.webservices.objects.Post;
 
 import java.text.DateFormat;
@@ -53,7 +54,7 @@ public class PostsAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public Object getGroup(int groupPosition) {
+    public Post getGroup(int groupPosition) {
         return this.mPosts.get(groupPosition);
     }
 
@@ -194,6 +195,12 @@ public class PostsAdapter extends BaseExpandableListAdapter {
         for(Post p : posts) {
             mPosts.add(p);
         }
+
+        this.notifyDataSetChanged();
+    }
+
+    public void addComment(int mGroupPos, CommentItem comment) {
+        mPosts.get(mGroupPos).getComment().getItems().add(comment);
 
         this.notifyDataSetChanged();
     }

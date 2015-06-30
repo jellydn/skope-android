@@ -9,6 +9,7 @@ package com.speakgeo.skopebeta;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -16,6 +17,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,7 +27,13 @@ import com.speakgeo.skopebeta.custom.CustomActivity;
 import com.speakgeo.skopebeta.custom.ExpandableHeightListView;
 import com.speakgeo.skopebeta.interfaces.ICommentable;
 import com.speakgeo.skopebeta.utils.UserProfileSingleton;
+import com.speakgeo.skopebeta.utils.imageloader.ImageLoaderSingleton;
+import com.speakgeo.skopebeta.utils.imageloader.listeners.OnCompletedDownloadListener;
+import com.speakgeo.skopebeta.utils.imageloader.objects.Option;
+import com.speakgeo.skopebeta.webservices.PostWSObject;
 import com.speakgeo.skopebeta.webservices.UserWSObject;
+import com.speakgeo.skopebeta.webservices.objects.CommentResponse;
+import com.speakgeo.skopebeta.webservices.objects.CommonResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchPostByUserResponse;
 import com.speakgeo.skopebeta.webservices.objects.User;
 
@@ -34,6 +43,8 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
     private View vgrCompose;
     private EditText edtComposeContent;
     private Button btnPost, btnSendMessage;
+    private ImageView imgAvatar;
+    private ProgressBar prgLoadingImage;
 
     private PostsAdapter mPostsAdapter;
 
@@ -41,12 +52,15 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
     private int mTotalPost;
     private int mCurrentPage;
 
+    private int mCurrentSelectedPostPos;
+
     private int currentFirstVisibleItem;
     private int currentVisibleItemCount;
     private int currentScrollState;
     private boolean isLoading;
 
     private GetPostTask mGetPostTask;
+    private CommentTask mCommentTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,12 +89,22 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
         btnPost = (Button) this.findViewById(R.id.btn_post);
         btnSendMessage = (Button) this.findViewById(R.id.btn_send_message);
         edtComposeContent = (EditText) this.findViewById(R.id.edt_compose_content);
+        imgAvatar = (ImageView) this.findViewById(R.id.img_avatar);
+        prgLoadingImage = (ProgressBar) this.findViewById(R.id.prg_loading_img);
 
         mPostsAdapter.setParent(lstPosts);
         lstPosts.setAdapter(mPostsAdapter);
         lstPosts.setExpanded(true);
 
         tvUsername.setText(mUser.getName());
+
+        ImageLoaderSingleton.getInstance(this).load(mUser.getAvatar(), mUser.getId(), new OnCompletedDownloadListener() {
+            @Override
+            public void onComplete(View[] views, Bitmap bitmap) {
+                ((ImageView) views[0]).setImageBitmap(bitmap);
+                views[1].setVisibility(View.GONE);
+            }
+        }, null, new Option(200, 200), imgAvatar, prgLoadingImage);
     }
 
     @Override
@@ -95,14 +119,11 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.btn_post) {
-            //TODO not done yet
-            vgrCompose.setVisibility(View.GONE);
-            edtComposeContent.setText("");
+            if(edtComposeContent.getText().toString().isEmpty()) return;
 
-            InputMethodManager imm = (InputMethodManager) getSystemService(
-                    Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(edtComposeContent.getWindowToken(), 0);
-
+            if(mCommentTask != null) mCommentTask.cancel(true);
+            mCommentTask = new CommentTask(mCurrentSelectedPostPos);
+            mCommentTask.execute(edtComposeContent.getText().toString(),mPostsAdapter.getGroup(mCurrentSelectedPostPos).getId());
         } else if (v.getId() == R.id.vgr_compose) {
             if (vgrCompose.getVisibility() == View.VISIBLE) {
                 InputMethodManager imm = (InputMethodManager) getSystemService(
@@ -118,8 +139,22 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
 
     @Override
     public void showAddCommentBox(int position) {
+        mCurrentSelectedPostPos = position;
+
         vgrCompose.setVisibility(View.VISIBLE);
         edtComposeContent.requestFocus();
+    }
+
+    @Override
+    public void like(int position) {
+        mCurrentSelectedPostPos = position;
+
+    }
+
+    @Override
+    public void dislike(int position) {
+        mCurrentSelectedPostPos = position;
+
     }
 
     public void loadPostData() {
@@ -176,6 +211,46 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
                 mTotalPost = result.getData().getTotal();
             } else {
                 Toast.makeText(getApplicationContext(), result.getData().getMessage(), Toast.LENGTH_LONG).show();
+            }
+
+            isLoading = false;
+            hideLoadingBar();
+        }
+    }
+
+    private class CommentTask extends AsyncTask<String, Void, CommentResponse> {
+        private int mGroupPos;
+
+        public CommentTask(int groupPos) {
+            mGroupPos = groupPos;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            showLoadingBar();
+        };
+
+        @Override
+        protected CommentResponse doInBackground(String... params) {
+            return PostWSObject
+                    .comment(getApplicationContext(),params[0],params[1]);//content, post id
+        }
+
+        @Override
+        protected void onPostExecute(CommentResponse result) {
+            super.onPostExecute(result);
+
+            if (!result.hasError()) {
+                vgrCompose.setVisibility(View.GONE);
+                edtComposeContent.setText("");
+
+                InputMethodManager imm = (InputMethodManager) getApplicationContext().getSystemService(
+                        Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(edtComposeContent.getWindowToken(), 0);
+
+                mPostsAdapter.addComment(mGroupPos, result.getData().getComment());
+            } else {
+                Toast.makeText(getApplicationContext(), result.getMeta().getMessage(), Toast.LENGTH_LONG).show();
             }
 
             isLoading = false;

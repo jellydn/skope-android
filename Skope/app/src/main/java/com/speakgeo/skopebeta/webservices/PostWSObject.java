@@ -17,6 +17,7 @@ import com.speakgeo.skopebeta.utils.UserProfileSingleton;
 import com.speakgeo.skopebeta.webservices.objects.CommentResponse;
 import com.speakgeo.skopebeta.webservices.objects.CommonResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchPostResponse;
+import com.speakgeo.skopebeta.webservices.objects.VoteResponse;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -90,7 +91,7 @@ public class PostWSObject {
         }
     }
 
-    public static CommonResponse vote(Context context, boolean isLike, String postId) {
+    public static VoteResponse vote(Context context, boolean isLike, String postId) {
         try {
             List<NameValuePair> queries = new ArrayList<NameValuePair>(1);
             queries.add(new BasicNameValuePair("access_token", UserProfileSingleton.getConfig(context).getAccessToken()));
@@ -102,7 +103,7 @@ public class PostWSObject {
                     + "post/"+postId+"/vote", nameValuePairs, queries);
 
             Gson gson = new GsonBuilder().create();
-            return gson.fromJson(result, CommonResponse.class);
+            return gson.fromJson(result, VoteResponse.class);
         } catch (Exception e) {
             Log.e("SAN", "PostWSObject/vote: "+ e.getMessage());
             return null;
