@@ -7,11 +7,13 @@
 
 package com.speakgeo.skopebeta.webservices.objects;
 
+import java.io.Serializable;
+
 /**
 * Response of Login API.
 *
 */
-public class Ejabberd {
+public class Ejabberd implements Serializable {
     private String username;
 
     public String getUsername() {

@@ -33,6 +33,7 @@ import com.speakgeo.skopebeta.adapters.PostsAdapter;
 import com.speakgeo.skopebeta.custom.CustomActivity;
 import com.speakgeo.skopebeta.custom.ExpandableHeightListView;
 import com.speakgeo.skopebeta.interfaces.ICommentable;
+import com.speakgeo.skopebeta.utils.ImageUtil;
 import com.speakgeo.skopebeta.utils.UserProfileSingleton;
 import com.speakgeo.skopebeta.utils.imageloader.ImageLoaderSingleton;
 import com.speakgeo.skopebeta.utils.imageloader.listeners.OnCompletedDownloadListener;
@@ -42,6 +43,7 @@ import com.speakgeo.skopebeta.webservices.UserWSObject;
 import com.speakgeo.skopebeta.webservices.objects.CommentResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchPostByUserResponse;
 import com.speakgeo.skopebeta.webservices.objects.User;
+import com.speakgeo.skopebeta.webservices.objects.VoteResponse;
 
 public class ProfileActivity extends CustomActivity implements View.OnClickListener, AbsListView.OnScrollListener, ICommentable {
     private ExpandableHeightListView lstPosts;
@@ -67,6 +69,7 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
 
     private GetPostTask mGetPostTask;
     private CommentTask mCommentTask;
+    private VoteTask mVoteTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +93,8 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
 
     @Override
     public void initControls() {
+        super.initControls();
+
         lstPosts = (ExpandableHeightListView) this.findViewById(R.id.lst_posts);
         vgrCompose = this.findViewById(R.id.vgr_compose);
         btnPost = (Button) this.findViewById(R.id.btn_post);
@@ -109,7 +114,7 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
         ImageLoaderSingleton.getInstance(this).load(mUser.getAvatar(), mUser.getId(), new OnCompletedDownloadListener() {
             @Override
             public void onComplete(View[] views, Bitmap bitmap) {
-                ((ImageView) views[0]).setImageBitmap(bitmap);
+                ((ImageView) views[0]).setImageBitmap(ImageUtil.getRoundedCornerBitmap(bitmap));
                 views[1].setVisibility(View.GONE);
             }
         }, null, new Option(200, 200), imgAvatar, prgLoadingImage);
@@ -178,12 +183,18 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
     public void like(int position) {
         mCurrentSelectedPostPos = position;
 
+        if(mVoteTask != null) mVoteTask.cancel(true);
+        mVoteTask = new VoteTask(mCurrentSelectedPostPos);
+        mVoteTask.execute("true",mPostsAdapter.getGroup(mCurrentSelectedPostPos).getId());
     }
 
     @Override
     public void dislike(int position) {
         mCurrentSelectedPostPos = position;
 
+        if(mVoteTask != null) mVoteTask.cancel(true);
+        mVoteTask = new VoteTask(mCurrentSelectedPostPos);
+        mVoteTask.execute("false",mPostsAdapter.getGroup(mCurrentSelectedPostPos).getId());
     }
 
     @Override
@@ -257,7 +268,7 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
 
         @Override
         protected SearchPostByUserResponse doInBackground(Void... params) {
-            return UserWSObject.searchPostByUser(getApplicationContext(), mUser.getId(), mCurrentPage++, UserProfileSingleton.NUM_OF_POST_PER_PAGE);
+            return UserWSObject.searchPostByUser(getApplicationContext(), mUser.getId(), ++mCurrentPage, UserProfileSingleton.NUM_OF_POST_PER_PAGE);
         }
 
         @Override
@@ -309,6 +320,41 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
                 imm.hideSoftInputFromWindow(edtComposeContent.getWindowToken(), 0);
 
                 mPostsAdapter.addComment(mGroupPos, result.getData().getComment());
+            } else {
+                Toast.makeText(getApplicationContext(), result.getMeta().getMessage(), Toast.LENGTH_LONG).show();
+            }
+
+            isLoading = false;
+            hideLoadingBar();
+        }
+    }
+
+    private class VoteTask extends AsyncTask<String, Void, VoteResponse> {
+        private int mGroupPos;
+
+        public VoteTask(int groupPos) {
+            mGroupPos = groupPos;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            showLoadingBar();
+        };
+
+        @Override
+        protected VoteResponse doInBackground(String... params) {
+            return PostWSObject
+                    .vote(getApplicationContext(), Boolean.parseBoolean(params[0]), params[1]);//type, post id
+        }
+
+        @Override
+        protected void onPostExecute(VoteResponse result) {
+            super.onPostExecute(result);
+
+            if (!result.hasError()) {
+                mPostsAdapter.updateVote(mGroupPos, result.getData().getPost());
+
+                Toast.makeText(getApplicationContext(), result.getData().getMessage(), Toast.LENGTH_LONG).show();
             } else {
                 Toast.makeText(getApplicationContext(), result.getMeta().getMessage(), Toast.LENGTH_LONG).show();
             }

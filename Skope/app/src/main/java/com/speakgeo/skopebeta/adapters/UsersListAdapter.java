@@ -12,6 +12,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.speakgeo.skopebeta.R;
+import com.speakgeo.skopebeta.utils.ImageUtil;
 import com.speakgeo.skopebeta.utils.imageloader.ImageLoaderSingleton;
 import com.speakgeo.skopebeta.utils.imageloader.listeners.OnCompletedDownloadListener;
 import com.speakgeo.skopebeta.utils.imageloader.objects.Option;
@@ -77,7 +78,7 @@ public class UsersListAdapter extends BaseAdapter {
         ImageLoaderSingleton.getInstance(context).load(mUsers.get(position).getAvatar(),mUsers.get(position).getId(),new OnCompletedDownloadListener() {
             @Override
             public void onComplete(View[] views, Bitmap bitmap) {
-                ((ImageView)views[0]).setImageBitmap(bitmap);
+                ((ImageView)views[0]).setImageBitmap(ImageUtil.getRoundedCornerBitmap(bitmap));
                 views[1].setVisibility(View.GONE);
             }
         },null, new Option(150,150),holder.imgAvatar,holder.prgLoading);

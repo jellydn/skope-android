@@ -25,6 +25,7 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.speakgeo.skopebeta.adapters.UsersListAdapter;
 import com.speakgeo.skopebeta.custom.CustomActivity;
 import com.speakgeo.skopebeta.utils.UserProfileSingleton;
 import com.speakgeo.skopebeta.webservices.UserWSObject;
@@ -135,7 +136,11 @@ public class LoginActivity extends CustomActivity {
 
             if (!result.hasError()) {
                 UserProfileSingleton.getConfig(getApplicationContext()).setAccessToken(result.getData().getAccessToken().getToken());
-                startActivity(new Intent(getApplicationContext(), HomeActivity.class));
+
+                Intent intent = new Intent(getApplicationContext(),HomeActivity.class);
+                intent.putExtra("USER",result.getData().getUser());
+                startActivity(intent);
+
                 finish();
             } else {
                 Toast.makeText(getApplicationContext(), result.getData().getMessage(), Toast.LENGTH_LONG).show();

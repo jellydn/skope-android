@@ -24,9 +24,14 @@ public class LoginResponse extends CommonResponse {
 
     public class Data extends CommonResponse.Data{
         private AccessToken accessToken;
+        private User user;
 
         public AccessToken getAccessToken() {
             return accessToken;
+        }
+
+        public User getUser() {
+            return user;
         }
 
         public class AccessToken {

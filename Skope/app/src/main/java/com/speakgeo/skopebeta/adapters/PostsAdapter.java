@@ -94,6 +94,10 @@ public class PostsAdapter extends BaseExpandableListAdapter {
             holder.tvPostDate = (TextView) viewToUse.findViewById(R.id.tv_post_date);
             holder.tvPostContent = (TextView) viewToUse.findViewById(R.id.tv_post_content);
             holder.btnComment = (Button) viewToUse.findViewById(R.id.btn_comment);
+            holder.tvLike = (TextView) viewToUse.findViewById(R.id.tv_like);
+            holder.tvDislike = (TextView) viewToUse.findViewById(R.id.tv_dislike);
+            holder.tvLikeClick = (TextView) viewToUse.findViewById(R.id.tv_like_click);
+            holder.tvDislikeClick = (TextView) viewToUse.findViewById(R.id.tv_dislike_click);
             viewToUse.setTag(holder);
         } else {
             viewToUse = convertView;
@@ -123,12 +127,27 @@ public class PostsAdapter extends BaseExpandableListAdapter {
                 mCommentableActivity.showAddCommentBox(groupPosition);
             }
         });
+        holder.tvLikeClick.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCommentableActivity.like(groupPosition);
+            }
+        });
+        holder.tvDislikeClick.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCommentableActivity.dislike(groupPosition);
+            }
+        });
 
         holder.tvPostContent.setText(this.mPosts.get(groupPosition).getContent());
-        holder.tvPostDistance.setText(String.format("Posted %d km away", (int)(Double.parseDouble(this.mPosts.get(groupPosition).getLocation().getDistance()) * Math.random())));
+        if(this.mPosts.get(groupPosition).getLocation().getDistance() != null)
+            holder.tvPostDistance.setText(String.format("Posted %d km away", (int)(Double.parseDouble(this.mPosts.get(groupPosition).getLocation().getDistance()) * Math.random())));
         holder.btnCommentExpand.setText(String.format("Comments (%d)", this.mPosts.get(groupPosition).getComment().getItems().size()));
+        holder.tvLike.setText(String.valueOf(this.mPosts.get(groupPosition).getLike().getTotal()));
+        holder.tvDislike.setText(String.valueOf(this.mPosts.get(groupPosition).getDislike().getTotal()));
 
-        DateFormat sdf = new SimpleDateFormat("dd MM, yyyy");
+        DateFormat sdf = new SimpleDateFormat("dd MMMM, yyyy");
         Date netDate = (new Date(this.mPosts.get(groupPosition).getCreated_at()));
         holder.tvPostDate.setText(sdf.format(netDate));
         return viewToUse;
@@ -179,6 +198,10 @@ public class PostsAdapter extends BaseExpandableListAdapter {
         TextView tvPostDate;
         TextView tvPostContent;
         Button btnComment;
+        TextView tvLike;
+        TextView tvDislike;
+        TextView tvLikeClick;
+        TextView tvDislikeClick;
     }
 
     private class CommentViewHolder {
@@ -201,6 +224,13 @@ public class PostsAdapter extends BaseExpandableListAdapter {
 
     public void addComment(int mGroupPos, CommentItem comment) {
         mPosts.get(mGroupPos).getComment().getItems().add(comment);
+
+        this.notifyDataSetChanged();
+    }
+
+    public void updateVote(int mGroupPos, Post post) {
+        mPosts.get(mGroupPos).setLike(post.getLike());
+        mPosts.get(mGroupPos).setDislike(post.getDislike());
 
         this.notifyDataSetChanged();
     }

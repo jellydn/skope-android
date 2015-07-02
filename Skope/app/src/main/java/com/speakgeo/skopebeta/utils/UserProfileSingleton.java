@@ -15,7 +15,7 @@ public class UserProfileSingleton {
 	public static final String END_POINT = "http://108.61.202.156/";
 
     //
-    public static final int TIME_OUT = 30;
+    public static final int TIME_OUT = 30000;
 
     //
     public static final int NUM_OF_POST_PER_PAGE = 5;

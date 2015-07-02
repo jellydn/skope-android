@@ -36,6 +36,7 @@
         android:gravity="center_vertical">
 
         <TextView
+            android:id="@+id/tv_like_click"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Likes" />
@@ -68,6 +69,7 @@
             android:textColor="#c55549" />
 
         <TextView
+            android:id="@+id/tv_dislike_click"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="32dp"

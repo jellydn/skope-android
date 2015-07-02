@@ -7,11 +7,13 @@
 
 package com.speakgeo.skopebeta.webservices.objects;
 
+import java.io.Serializable;
+
 /**
 * Response of Login API.
 *
 */
-public class Location {
+public class Location implements Serializable {
     private String distance;
     private String longitude;
     private String latitude;

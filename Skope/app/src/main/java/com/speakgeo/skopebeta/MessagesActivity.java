@@ -54,6 +54,8 @@ public class MessagesActivity extends CustomActivity implements AdapterView.OnIt
 
     @Override
     public void initControls() {
+        super.initControls();
+
         lstMessages = (ListView) this.findViewById(R.id.lst_messages);
 
         lstMessages.setAdapter(mMessagesAdapter);

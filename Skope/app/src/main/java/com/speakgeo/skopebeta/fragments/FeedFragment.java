@@ -192,7 +192,7 @@ public class FeedFragment extends CustomListFragment implements View.OnClickList
         @Override
         protected SearchPostResponse doInBackground(Void... params) {
             return PostWSObject
-                    .search(getActivity(), mLastLocation.longitude, mLastLocation.latitude, mCurrentRadius, mCurrentPage++, UserProfileSingleton.NUM_OF_POST_PER_PAGE);
+                    .search(getActivity(), mLastLocation.longitude, mLastLocation.latitude, mCurrentRadius, ++mCurrentPage, UserProfileSingleton.NUM_OF_POST_PER_PAGE);
         }
 
         @Override

@@ -112,7 +112,7 @@ public class UsersFragment extends CustomListFragment implements IFragmentInitia
         @Override
         protected SearchUserResponse doInBackground(Void... params) {
             return UserWSObject
-                    .search(getActivity(), mLastLocation.longitude, mLastLocation.latitude, mCurrentRadius, mCurrentPage++, UserProfileSingleton.NUM_OF_USER_PER_PAGE);
+                    .search(getActivity(), mLastLocation.longitude, mLastLocation.latitude, mCurrentRadius, ++mCurrentPage, UserProfileSingleton.NUM_OF_USER_PER_PAGE);
         }
 
         @Override

@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.speakgeo.skopebeta.R;
 import com.speakgeo.skopebeta.fragments.FeedFragment;
+import com.speakgeo.skopebeta.utils.ImageUtil;
 import com.speakgeo.skopebeta.utils.imageloader.ImageLoaderSingleton;
 import com.speakgeo.skopebeta.utils.imageloader.listeners.OnCompletedDownloadListener;
 import com.speakgeo.skopebeta.utils.imageloader.objects.Option;
@@ -143,7 +144,7 @@ public class FeedAdapter extends BaseExpandableListAdapter {
         ImageLoaderSingleton.getInstance(mContext).load(mPosts.get(groupPosition).getUser().getAvatar(),mPosts.get(groupPosition).getUser().getId(),new OnCompletedDownloadListener() {
             @Override
             public void onComplete(View[] views, Bitmap bitmap) {
-                ((ImageView)views[0]).setImageBitmap(bitmap);
+                ((ImageView)views[0]).setImageBitmap(ImageUtil.getRoundedCornerBitmap(bitmap));
                 views[1].setVisibility(View.GONE);
             }
         },null, new Option(150,150),holder.imgAvatar,holder.prgLoading);

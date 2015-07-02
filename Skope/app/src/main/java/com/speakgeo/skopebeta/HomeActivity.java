@@ -54,6 +54,7 @@ import com.speakgeo.skopebeta.webservices.UserWSObject;
 import com.speakgeo.skopebeta.webservices.objects.CommonResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchPostResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchUserResponse;
+import com.speakgeo.skopebeta.webservices.objects.User;
 
 public class HomeActivity extends CustomActivity implements View.OnClickListener, CircularPickChangeListener, AdapterView.OnItemClickListener, GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener {
     private TextView tvUsers, tvPosts, tvRadius;
@@ -75,6 +76,8 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
     private Marker mCurrentMark;
     private LatLng mLastLocation;
     private int mCurrentRadius;
+
+    private User mUser;
 
     ComposePreviewAdapter mComposePreviewAdapter;
 
@@ -98,6 +101,8 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
 
     @Override
     public void initData() {
+        mUser = (User)this.getIntent().getSerializableExtra("USER");
+
         mLastLocation = new LatLng(15.8907709f,108.3219069f);
         mCurrentRadius = 1;
 
@@ -106,6 +111,8 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
 
     @Override
     public void initControls() {
+        super.initControls();
+
         tvUsers = (TextView) this.findViewById(R.id.tv_users);
         tvPosts = (TextView) this.findViewById(R.id.tv_posts);
         tvRadius = (TextView) this.findViewById(R.id.tv_radius);
@@ -222,7 +229,9 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         } else if (v.getId() == R.id.btn_right) {
             mDrawerLayout.openDrawer(Gravity.END);
         } else if (v.getId() == R.id.btn_profile) {
-            startActivity(new Intent(this, ProfileActivity.class));
+            Intent intent = new Intent(getApplicationContext(),ProfileActivity.class);
+            intent.putExtra("USER",mUser);
+            startActivity(intent);
         } else if (v.getId() == R.id.btn_message) {
             startActivity(new Intent(this, MessagesActivity.class));
         }

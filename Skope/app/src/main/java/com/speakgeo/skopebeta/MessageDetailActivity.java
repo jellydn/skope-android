@@ -67,6 +67,8 @@ public class MessageDetailActivity extends CustomActivity implements View.OnClic
 
     @Override
     public void initControls() {
+        super.initControls();
+
         lstChat = (ListView) this.findViewById(R.id.lst_chat);
         edtComposeContent = (EditText) this.findViewById(R.id.edt_compose_content);
         btnAttach = (Button) this.findViewById(R.id.btn_attach);
