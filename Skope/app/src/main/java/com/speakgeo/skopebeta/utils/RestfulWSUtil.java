@@ -21,6 +21,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -70,6 +71,31 @@ public class RestfulWSUtil {
         String lastUrl = url+"?"+URLEncodedUtils.format(nameValuePairs, "utf-8");
         HttpGet request = new HttpGet(lastUrl);
         Log.i("SAN", ">>REQUEST: " + lastUrl);
+        HttpResponse response;
+        try {
+            response = httpclient.execute(request);
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                InputStream inStream = entity.getContent();
+                r = getResponseText(inStream);
+                Log.i("SAN", "<<RESPONSE: " + r);
+                inStream.close();
+            }
+        } catch (Exception e) {
+            Log.e("SAN", "RestfulWSUtil/doPost: "+e.getMessage());
+        }
+        return r;
+    }
+
+    public static String doPut(String url, List<NameValuePair> nameValuePairs, List<NameValuePair> query)
+            throws ClientProtocolException, IOException {
+        String r = null;
+        HttpClient httpclient = new DefaultHttpClient();
+        String lastUrl = query==null ? url : url+"?"+URLEncodedUtils.format(query, "utf-8");
+        HttpPut request = new HttpPut(lastUrl);
+        Log.i("SAN", ">>REQUEST: " + lastUrl);
+        request.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
         HttpResponse response;
         try {
             response = httpclient.execute(request);

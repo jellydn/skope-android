@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.speakgeo.skopebeta.adapters.PostsAdapter;
 import com.speakgeo.skopebeta.custom.CustomActivity;
+import com.speakgeo.skopebeta.custom.CustomScrollView;
 import com.speakgeo.skopebeta.custom.ExpandableHeightListView;
 import com.speakgeo.skopebeta.interfaces.ICommentable;
 import com.speakgeo.skopebeta.utils.ImageUtil;
@@ -39,7 +40,7 @@ import com.speakgeo.skopebeta.webservices.objects.SearchPostByUserResponse;
 import com.speakgeo.skopebeta.webservices.objects.User;
 import com.speakgeo.skopebeta.webservices.objects.VoteResponse;
 
-public class UserDetailActivity extends CustomActivity implements View.OnClickListener, AbsListView.OnScrollListener, ICommentable {
+public class UserDetailActivity extends CustomActivity implements View.OnClickListener, CustomScrollView.OnScrollListener, ICommentable {
     private ExpandableHeightListView lstPosts;
     private TextView tvUsername;
     private View vgrCompose;
@@ -47,6 +48,7 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
     private Button btnPost, btnSendMessage;
     private ImageView imgAvatar;
     private ProgressBar prgLoadingImage;
+    private CustomScrollView scrMain;
 
     private PostsAdapter mPostsAdapter;
 
@@ -56,9 +58,6 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
 
     private int mCurrentSelectedPostPos;
 
-    private int currentFirstVisibleItem;
-    private int currentVisibleItemCount;
-    private int currentScrollState;
     private boolean isLoading;
 
     private GetPostTask mGetPostTask;
@@ -96,6 +95,7 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
         edtComposeContent = (EditText) this.findViewById(R.id.edt_compose_content);
         imgAvatar = (ImageView) this.findViewById(R.id.img_avatar);
         prgLoadingImage = (ProgressBar) this.findViewById(R.id.prg_loading_img);
+        scrMain = (CustomScrollView) this.findViewById(R.id.scr_main);
 
         mPostsAdapter.setParent(lstPosts);
         lstPosts.setAdapter(mPostsAdapter);
@@ -118,7 +118,7 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
         vgrCompose.setOnClickListener(this);
         btnSendMessage.setOnClickListener(this);
 
-        this.lstPosts.setOnScrollListener(this);
+        scrMain.setOnScrollListener(this);
     }
 
     @Override
@@ -177,25 +177,12 @@ public class UserDetailActivity extends CustomActivity implements View.OnClickLi
         mGetPostTask.execute();
     }
 
-    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-        this.currentFirstVisibleItem = firstVisibleItem;
-        this.currentVisibleItemCount = visibleItemCount;
-    }
-
-    public void onScrollStateChanged(AbsListView view, int scrollState) {
-        this.currentScrollState = scrollState;
-        this.isScrollCompleted();
-    }
-
-    private void isScrollCompleted() {
-        if (this.currentVisibleItemCount > 0 && this.currentScrollState == SCROLL_STATE_IDLE) {
-
-            if(!isLoading && mCurrentPage <= Math.ceil(mTotalPost/ UserProfileSingleton.NUM_OF_POST_PER_PAGE)) {
-                isLoading = true;
-                if(mGetPostTask != null) mGetPostTask.cancel(true);
-                mGetPostTask = new GetPostTask();
-                mGetPostTask.execute();
-            }
+    public void onScrollToEnd() {
+        if (!isLoading && mCurrentPage <= Math.ceil(mTotalPost / UserProfileSingleton.NUM_OF_POST_PER_PAGE)) {
+            isLoading = true;
+            if (mGetPostTask != null) mGetPostTask.cancel(true);
+            mGetPostTask = new GetPostTask();
+            mGetPostTask.execute();
         }
     }
 

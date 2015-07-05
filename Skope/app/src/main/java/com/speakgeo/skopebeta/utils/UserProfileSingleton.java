@@ -31,9 +31,11 @@ public class UserProfileSingleton {
 
 	private String mAccessToken;
     private boolean mIsFisrtTime;
+    private String mName;
 	//
 	private static final String ACCESS_TOKEN = "ACCESS_TOKEN";
     private static final String IS_FIRST_TIME = "IS_FIRST_TIME";
+    private static final String NAME = "NAME";
 
 	public static synchronized UserProfileSingleton getConfig(Context context) {
 		if (mInstance == null) {
@@ -47,6 +49,7 @@ public class UserProfileSingleton {
 		mEditor = mSettings.edit();
 
 		mAccessToken = mSettings.getString(ACCESS_TOKEN, "");
+        mName = mSettings.getString(NAME, "");
         mIsFisrtTime = mSettings.getBoolean(IS_FIRST_TIME, true);
 	}
 
@@ -67,6 +70,16 @@ public class UserProfileSingleton {
     public void setIsFisrtTime(boolean v) {
         mIsFisrtTime = v;
         mEditor.putBoolean(IS_FIRST_TIME, v);
+        mEditor.commit();
+    }
+
+    public String getName() {
+        return mName;
+    }
+
+    public void setName(String v) {
+        mName = v;
+        mEditor.putString(NAME, v);
         mEditor.commit();
     }
 }

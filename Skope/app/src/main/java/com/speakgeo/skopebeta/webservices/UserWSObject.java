@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.speakgeo.skopebeta.utils.RestfulWSUtil;
 import com.speakgeo.skopebeta.utils.UserProfileSingleton;
+import com.speakgeo.skopebeta.webservices.objects.CommonResponse;
 import com.speakgeo.skopebeta.webservices.objects.LoginResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchPostByUserResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchPostResponse;
@@ -81,6 +82,25 @@ public class UserWSObject {
             return gson.fromJson(result, SearchPostByUserResponse.class);
         } catch (Exception e) {
             Log.e("SAN", "UserWSObject/searchPostByUser: "+ e.getMessage());
+            return null;
+        }
+    }
+
+    public static CommonResponse updateProfile(Context context, String name) {
+        try {
+            List<NameValuePair> queries = new ArrayList<NameValuePair>(1);
+            queries.add(new BasicNameValuePair("access_token", UserProfileSingleton.getConfig(context).getAccessToken()));
+
+            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);
+            nameValuePairs.add(new BasicNameValuePair("name", name));
+
+            String result = RestfulWSUtil.doPut(UserProfileSingleton.END_POINT
+                    + "user/profile", nameValuePairs, queries);
+
+            Gson gson = new GsonBuilder().create();
+            return gson.fromJson(result, SearchPostByUserResponse.class);
+        } catch (Exception e) {
+            Log.e("SAN", "UserWSObject/updateProfile: "+ e.getMessage());
             return null;
         }
     }

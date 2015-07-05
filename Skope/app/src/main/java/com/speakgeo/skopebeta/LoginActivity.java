@@ -137,6 +137,8 @@ public class LoginActivity extends CustomActivity {
             if (!result.hasError()) {
                 UserProfileSingleton.getConfig(getApplicationContext()).setAccessToken(result.getData().getAccessToken().getToken());
 
+                UserProfileSingleton.getConfig(getApplicationContext()).setName(result.getData().getUser().getName());
+
                 Intent intent = new Intent(getApplicationContext(),HomeActivity.class);
                 intent.putExtra("USER",result.getData().getUser());
                 startActivity(intent);

@@ -12,9 +12,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -26,13 +29,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.speakgeo.skopebeta.adapters.PostsAdapter;
 import com.speakgeo.skopebeta.custom.CustomActivity;
+import com.speakgeo.skopebeta.custom.CustomScrollView;
 import com.speakgeo.skopebeta.custom.ExpandableHeightListView;
 import com.speakgeo.skopebeta.interfaces.ICommentable;
+import com.speakgeo.skopebeta.utils.HttpFileUploadUtil;
 import com.speakgeo.skopebeta.utils.ImageUtil;
 import com.speakgeo.skopebeta.utils.UserProfileSingleton;
 import com.speakgeo.skopebeta.utils.imageloader.ImageLoaderSingleton;
@@ -41,11 +47,15 @@ import com.speakgeo.skopebeta.utils.imageloader.objects.Option;
 import com.speakgeo.skopebeta.webservices.PostWSObject;
 import com.speakgeo.skopebeta.webservices.UserWSObject;
 import com.speakgeo.skopebeta.webservices.objects.CommentResponse;
+import com.speakgeo.skopebeta.webservices.objects.CommonResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchPostByUserResponse;
 import com.speakgeo.skopebeta.webservices.objects.User;
 import com.speakgeo.skopebeta.webservices.objects.VoteResponse;
 
-public class ProfileActivity extends CustomActivity implements View.OnClickListener, AbsListView.OnScrollListener, ICommentable {
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+
+public class ProfileActivity extends CustomActivity implements View.OnClickListener, CustomScrollView.OnScrollListener, ICommentable {
     private ExpandableHeightListView lstPosts;
     private View vgrCompose;
     private EditText edtComposeContent;
@@ -53,6 +63,7 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
     private TextView tvUsername, btnEditName, btnChangePicture;
     private ImageView imgAvatar;
     private ProgressBar prgLoadingImage;
+    private CustomScrollView scrMain;
 
     private PostsAdapter mPostsAdapter;
 
@@ -62,14 +73,13 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
 
     private int mCurrentSelectedPostPos;
 
-    private int currentFirstVisibleItem;
-    private int currentVisibleItemCount;
-    private int currentScrollState;
     private boolean isLoading;
 
     private GetPostTask mGetPostTask;
     private CommentTask mCommentTask;
     private VoteTask mVoteTask;
+    private UpdateProfileTask mUpdateProfile;
+    private UploadAvatarTask mUploadAvatarTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,12 +114,13 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
         btnChangePicture = (TextView) this.findViewById(R.id.btn_change_picture);
         imgAvatar = (ImageView) this.findViewById(R.id.img_avatar);
         prgLoadingImage = (ProgressBar) this.findViewById(R.id.prg_loading_img);
+        scrMain = (CustomScrollView) this.findViewById(R.id.scr_main);
 
         mPostsAdapter.setParent(lstPosts);
         lstPosts.setAdapter(mPostsAdapter);
         lstPosts.setExpanded(true);
 
-        tvUsername.setText(mUser.getName());
+        tvUsername.setText(UserProfileSingleton.getConfig(getApplicationContext()).getName());
 
         ImageLoaderSingleton.getInstance(this).load(mUser.getAvatar(), mUser.getId(), new OnCompletedDownloadListener() {
             @Override
@@ -127,9 +138,9 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
         btnEditName.setOnClickListener(this);
         btnChangePicture.setOnClickListener(this);
 
-        registerForContextMenu(btnChangePicture);
+        scrMain.setOnScrollListener(this);
 
-        this.lstPosts.setOnScrollListener(this);
+        registerForContextMenu(btnChangePicture);
     }
 
     @Override
@@ -157,9 +168,11 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
                     .setView(input)
                     .setPositiveButton("Done", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
-                            String newName = input.getText().toString();
-                            if (!newName.isEmpty())
-                                tvUsername.setText(newName);
+                            if(!input.getText().toString().isEmpty()) {
+                                if (mUpdateProfile != null) mUpdateProfile.cancel(true);
+                                mUpdateProfile = new UpdateProfileTask();
+                                mUpdateProfile.execute(input.getText().toString());
+                            }
                         }
                     }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
@@ -183,18 +196,18 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
     public void like(int position) {
         mCurrentSelectedPostPos = position;
 
-        if(mVoteTask != null) mVoteTask.cancel(true);
+        if (mVoteTask != null) mVoteTask.cancel(true);
         mVoteTask = new VoteTask(mCurrentSelectedPostPos);
-        mVoteTask.execute("true",mPostsAdapter.getGroup(mCurrentSelectedPostPos).getId());
+        mVoteTask.execute("true", mPostsAdapter.getGroup(mCurrentSelectedPostPos).getId());
     }
 
     @Override
     public void dislike(int position) {
         mCurrentSelectedPostPos = position;
 
-        if(mVoteTask != null) mVoteTask.cancel(true);
+        if (mVoteTask != null) mVoteTask.cancel(true);
         mVoteTask = new VoteTask(mCurrentSelectedPostPos);
-        mVoteTask.execute("false",mPostsAdapter.getGroup(mCurrentSelectedPostPos).getId());
+        mVoteTask.execute("false", mPostsAdapter.getGroup(mCurrentSelectedPostPos).getId());
     }
 
     @Override
@@ -211,13 +224,14 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
         switch (item.getItemId()) {
             case R.id.menu_photo:
                 Intent intent1 = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                intent1.putExtra(MediaStore.EXTRA_OUTPUT, getAvatarUri());
                 startActivityForResult(intent1, 1);
 
                 return true;
             case R.id.menu_existing_file:
                 Intent intent2 = new Intent(Intent.ACTION_GET_CONTENT);
                 intent2.setType("image/*");
-                startActivityForResult(intent2, 3);
+                startActivityForResult(intent2, 2);
 
                 return true;
             default:
@@ -234,26 +248,34 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
         mGetPostTask.execute();
     }
 
-    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-        this.currentFirstVisibleItem = firstVisibleItem;
-        this.currentVisibleItemCount = visibleItemCount;
-    }
-
-    public void onScrollStateChanged(AbsListView view, int scrollState) {
-        this.currentScrollState = scrollState;
-        this.isScrollCompleted();
-    }
-
-    private void isScrollCompleted() {
-        if (this.currentVisibleItemCount > 0 && this.currentScrollState == SCROLL_STATE_IDLE) {
-
-            if (!isLoading && mCurrentPage <= Math.ceil(mTotalPost / UserProfileSingleton.NUM_OF_POST_PER_PAGE)) {
+    public void onScrollToEnd() {
+        if (!isLoading && mCurrentPage <= Math.ceil(mTotalPost / UserProfileSingleton.NUM_OF_POST_PER_PAGE)) {
                 isLoading = true;
                 if (mGetPostTask != null) mGetPostTask.cancel(true);
                 mGetPostTask = new GetPostTask();
                 mGetPostTask.execute();
-            }
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Uri selectedImage = getAvatarUri();
+
+        if(resultCode == RESULT_OK) {
+            if(requestCode == 2) { //pick from storage
+                selectedImage = data.getData();
+            }
+
+            if (mUploadAvatarTask != null) mUploadAvatarTask.cancel(true);
+            mUploadAvatarTask = new UploadAvatarTask();
+            mUploadAvatarTask.execute(selectedImage);
+        }
+    }
+
+    private Uri getAvatarUri() {
+        File file = new File(Environment.getDataDirectory().getPath(), "avatar");
+        return Uri.fromFile(file);
     }
 
     /*--------------- Tasks ----------------*/
@@ -339,7 +361,9 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
         @Override
         protected void onPreExecute() {
             showLoadingBar();
-        };
+        }
+
+        ;
 
         @Override
         protected VoteResponse doInBackground(String... params) {
@@ -363,4 +387,70 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
             hideLoadingBar();
         }
     }
+
+    private class UpdateProfileTask extends AsyncTask<String, Void, CommonResponse> {
+        private String name;
+        @Override
+        protected void onPreExecute() {
+            showLoadingBar();
+        }
+
+        @Override
+        protected CommonResponse doInBackground(String... params) {
+            name = params[0];
+            return UserWSObject.updateProfile(getApplicationContext(), name);
+        }
+
+        @Override
+        protected void onPostExecute(CommonResponse result) {
+            super.onPostExecute(result);
+
+            if (!result.hasError()) {
+                UserProfileSingleton.getConfig(getApplicationContext()).setName(name);
+                tvUsername.setText(name);
+            } else {
+                Toast.makeText(getApplicationContext(), result.getMeta().getMessage(), Toast.LENGTH_LONG).show();
+            }
+
+            isLoading = false;
+            hideLoadingBar();
+        }
+    }
+
+    private class UploadAvatarTask extends AsyncTask<Uri, Void, String> {
+        @Override
+        protected void onPreExecute() {
+            showLoadingBar();
+        };
+
+        @Override
+        protected String doInBackground(Uri... params) {
+            ByteArrayOutputStream baOS = new ByteArrayOutputStream();
+            Bitmap bitmap = ImageUtil.resizeBitmapFromUri(
+                    getApplicationContext(), params[0]);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, baOS);
+            byte[] imageData = baOS.toByteArray();
+
+            HttpFileUploadUtil uploader = new HttpFileUploadUtil(
+                    UserProfileSingleton.END_POINT + "user/avatar?access_token="+UserProfileSingleton.getConfig(getApplicationContext()).getAccessToken());
+            uploader.addData("file", imageData, "avatar.png");
+            return uploader.doUpload();
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+            try {
+                //TODO: load avatar again
+
+
+            } catch (Exception e) {
+                Log.e("SAN", e.getMessage());
+            }
+
+            hideLoadingBar();
+        }
+    }
+
 }
