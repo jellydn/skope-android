@@ -78,6 +78,7 @@ public class HttpFileUploadUtil {
 					dos.writeBytes("Content-Disposition: form-data; name=\""
 							+ item.getName() + "\";filename=\""
 							+ item.getFilename() + "\"" + lineEnd);
+                    dos.writeBytes("Content-Type: image/png" + lineEnd);
 					dos.writeBytes(lineEnd);
 
 					int totalSize = uploadData.length;

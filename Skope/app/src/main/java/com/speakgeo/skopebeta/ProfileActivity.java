@@ -33,6 +33,8 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.speakgeo.skopebeta.adapters.PostsAdapter;
 import com.speakgeo.skopebeta.custom.CustomActivity;
 import com.speakgeo.skopebeta.custom.CustomScrollView;
@@ -49,6 +51,7 @@ import com.speakgeo.skopebeta.webservices.UserWSObject;
 import com.speakgeo.skopebeta.webservices.objects.CommentResponse;
 import com.speakgeo.skopebeta.webservices.objects.CommonResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchPostByUserResponse;
+import com.speakgeo.skopebeta.webservices.objects.UpdateProfileResponse;
 import com.speakgeo.skopebeta.webservices.objects.User;
 import com.speakgeo.skopebeta.webservices.objects.VoteResponse;
 
@@ -122,7 +125,7 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
 
         tvUsername.setText(UserProfileSingleton.getConfig(getApplicationContext()).getName());
 
-        ImageLoaderSingleton.getInstance(this).load(mUser.getAvatar(), mUser.getId(), new OnCompletedDownloadListener() {
+        ImageLoaderSingleton.getInstance(this).load(mUser.getAvatar(), "User_"+mUser.getId(), new OnCompletedDownloadListener() {
             @Override
             public void onComplete(View[] views, Bitmap bitmap) {
                 ((ImageView) views[0]).setImageBitmap(ImageUtil.getRoundedCornerBitmap(bitmap));
@@ -428,6 +431,7 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
             ByteArrayOutputStream baOS = new ByteArrayOutputStream();
             Bitmap bitmap = ImageUtil.resizeBitmapFromUri(
                     getApplicationContext(), params[0]);
+
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, baOS);
             byte[] imageData = baOS.toByteArray();
 
@@ -441,16 +445,26 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
 
-            try {
-                //TODO: load avatar again
+            Gson gson = new GsonBuilder().create();
+            UpdateProfileResponse res = gson.fromJson(result, UpdateProfileResponse.class);
 
-
-            } catch (Exception e) {
-                Log.e("SAN", e.getMessage());
+            if(res.getMeta().getCode() == 400) {
+                Toast.makeText(getApplicationContext(), res.getMeta().getMessage(), Toast.LENGTH_LONG).show();
             }
+            else {
+                mUser = res.getData().getUser();
 
+                ImageLoaderSingleton.getInstance(getApplicationContext()).clearCacheById("User_" + mUser.getId());
+
+                ImageLoaderSingleton.getInstance(getApplicationContext()).load(mUser.getAvatar(), "User_" + mUser.getId(), new OnCompletedDownloadListener() {
+                    @Override
+                    public void onComplete(View[] views, Bitmap bitmap) {
+                        ((ImageView) views[0]).setImageBitmap(ImageUtil.getRoundedCornerBitmap(bitmap));
+                        views[1].setVisibility(View.GONE);
+                    }
+                }, null, new Option(200, 200), imgAvatar, prgLoadingImage);
+            }
             hideLoadingBar();
         }
     }
-
 }

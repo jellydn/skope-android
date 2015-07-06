@@ -166,8 +166,7 @@ public class MessageDetailActivity extends CustomActivity implements View.OnClic
         if (resultCode == RESULT_OK) {
             lstComposePreview.setVisibility(View.VISIBLE);
 
-            //TODO temp data
-            mComposePreviewAdapter.addItem("TEMP");
+            mComposePreviewAdapter.addItem(data.getData());
         }
     }
 }

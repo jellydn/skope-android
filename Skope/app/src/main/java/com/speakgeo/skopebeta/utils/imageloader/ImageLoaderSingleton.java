@@ -80,6 +80,16 @@ public class ImageLoaderSingleton {
 		this.clearFileCache();
 	}
 
+    public void clearCacheById(String cacheId) {
+        this.mMemoryCache.remove(cacheId);
+        for (String file : mContext.fileList()) {
+            if(file.equals(cacheId)) {
+                mContext.deleteFile(file);
+                break;
+            }
+        }
+    }
+
 	public void resetAll() {
 		this.stopAll();
 		this.clearCache();

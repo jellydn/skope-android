@@ -4,6 +4,8 @@
         android:title="Take Photo" />
     <item android:id="@+id/menu_video"
         android:title="Take Video" />
-    <item android:id="@+id/menu_existing_file"
-        android:title="Choose Existing" />
+    <item android:id="@+id/menu_photo_existing_file"
+        android:title="Choose Existing Photo" />
+    <item android:id="@+id/menu_video_existing_file"
+        android:title="Choose Existing Video" />
 </menu>

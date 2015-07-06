@@ -1,13 +1,21 @@
 package com.speakgeo.skopebeta.adapters;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.media.MediaMetadataRetriever;
+import android.media.ThumbnailUtils;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 
 import com.speakgeo.skopebeta.R;
+import com.speakgeo.skopebeta.utils.ImageUtil;
 
 import java.util.ArrayList;
 
@@ -19,7 +27,7 @@ import java.util.ArrayList;
  */
 public class ComposePreviewAdapter extends BaseAdapter {
     private Context context;
-    private ArrayList mData;
+    private ArrayList<Uri> mData;
 
     public ComposePreviewAdapter(Context context) {
         super();
@@ -33,7 +41,7 @@ public class ComposePreviewAdapter extends BaseAdapter {
     }
 
     @Override
-    public Object getItem(int position) {
+    public Uri getItem(int position) {
         return mData.get(position);
     }
 
@@ -53,14 +61,26 @@ public class ComposePreviewAdapter extends BaseAdapter {
             viewToUse = inflater.inflate(R.layout.item_compose_preview, null);
 
             holder = new ViewHolder();
-            //holder.titleText = (TextView)viewToUse.findViewById(R.id.titleTextView);
+            holder.imgPhoto= (ImageView)viewToUse.findViewById(R.id.img_photo);
             viewToUse.setTag(holder);
         } else {
             viewToUse = convertView;
             holder = (ViewHolder) viewToUse.getTag();
         }
 
-        //holder.titleText.setText(item.getItemTitle());
+        Bitmap bitmap = null;
+
+        if(mData.get(position).getPath().contains("video")) {
+            MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
+            mediaMetadataRetriever.setDataSource(context, mData.get(position));
+            bitmap = mediaMetadataRetriever.getFrameAtTime(1000);
+        }
+        else {
+            bitmap = ImageUtil.resizeBitmapFromUri(context, mData.get(position));
+        }
+
+        holder.imgPhoto.setImageBitmap(bitmap);
+
         return viewToUse;
     }
 
@@ -68,10 +88,10 @@ public class ComposePreviewAdapter extends BaseAdapter {
      * Holder for the list items.
      */
     private class ViewHolder{
-        //TextView titleText;
+        ImageView imgPhoto;
     }
 
-    public void addItem(String item) {
+    public void addItem(Uri item) {
         mData.add(item);
         notifyDataSetChanged();
     }

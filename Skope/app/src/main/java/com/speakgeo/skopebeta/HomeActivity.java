@@ -10,8 +10,10 @@ package com.speakgeo.skopebeta;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
@@ -55,6 +57,8 @@ import com.speakgeo.skopebeta.webservices.objects.CommonResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchPostResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchUserResponse;
 import com.speakgeo.skopebeta.webservices.objects.User;
+
+import java.io.File;
 
 public class HomeActivity extends CustomActivity implements View.OnClickListener, CircularPickChangeListener, AdapterView.OnItemClickListener, GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener {
     private TextView tvUsers, tvPosts, tvRadius;
@@ -251,24 +255,43 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         switch (item.getItemId()) {
             case R.id.menu_photo:
                 Intent intent1 = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                intent1.putExtra(MediaStore.EXTRA_OUTPUT, getPhotoUri());
                 startActivityForResult(intent1, 1);
 
                 return true;
             case R.id.menu_video:
                 Intent intent2 = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+                intent2.putExtra(MediaStore.EXTRA_OUTPUT, getVideoUri());
                 startActivityForResult(intent2, 2);
 
                 return true;
-            case R.id.menu_existing_file:
+            case R.id.menu_photo_existing_file:
                 Intent intent3 = new Intent(Intent.ACTION_GET_CONTENT);
                 intent3.setType("image/*");
-                intent3.setType("video/*");
                 startActivityForResult(intent3, 3);
+
+                return true;
+            case R.id.menu_video_existing_file:
+                Intent intent4 = new Intent(Intent.ACTION_GET_CONTENT);
+                intent4.setType("video/*");
+                startActivityForResult(intent4, 4);
 
                 return true;
             default:
                 return super.onContextItemSelected(item);
         }
+    }
+
+    private int photoIndex = 0;
+    private Uri getPhotoUri() {
+        File file = new File(Environment.getDataDirectory().getPath(), "photo"+(++photoIndex));
+        return Uri.fromFile(file);
+    }
+
+    private int videoIndex = 0;
+    private Uri getVideoUri() {
+        File file = new File(Environment.getDataDirectory().getPath(), "video"+(++videoIndex));
+        return Uri.fromFile(file);
     }
 
     @Override
@@ -283,8 +306,7 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         if(resultCode==RESULT_OK) {
             lstComposePreview.setVisibility(View.VISIBLE);
 
-            //TODO temp data
-            mComposePreviewAdapter.addItem("TEMP");
+            mComposePreviewAdapter.addItem(data.getData());
         }
     }
 
@@ -414,7 +436,6 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
     }
 
     private class PostTask extends AsyncTask<String, Void, CommonResponse> {
-
         @Override
         protected void onPreExecute() {
             showLoadingBar();
@@ -433,7 +454,10 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
             if (!result.hasError()) {
                 vgrCompose.setVisibility(View.GONE);
                 lstComposePreview.setVisibility(View.GONE);
+
                 mComposePreviewAdapter.reset();
+                photoIndex = 0;
+                videoIndex = 0;
 
                 edtComposeContent.setText("");
 

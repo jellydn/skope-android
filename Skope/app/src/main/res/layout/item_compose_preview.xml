@@ -3,10 +3,9 @@
     android:layout_height="90dp">
 
     <ImageView
-        android:id="@+id/tv_comment_content"
+        android:id="@+id/img_photo"
         android:layout_width="90dp"
-        android:layout_height="90dp"
-        android:src="@drawable/common_ic_googleplayservices" />
+        android:layout_height="90dp" />
 
     <Button
         android:background="@drawable/ic_btn_cancel"
