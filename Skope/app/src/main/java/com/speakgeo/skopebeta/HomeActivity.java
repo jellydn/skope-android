@@ -284,13 +284,13 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
 
     private int photoIndex = 0;
     private Uri getPhotoUri() {
-        File file = new File(Environment.getDataDirectory().getPath(), "photo"+(++photoIndex));
+        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "photo"+(++photoIndex));
         return Uri.fromFile(file);
     }
 
     private int videoIndex = 0;
     private Uri getVideoUri() {
-        File file = new File(Environment.getDataDirectory().getPath(), "video"+(++videoIndex));
+        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "video"+(++videoIndex));
         return Uri.fromFile(file);
     }
 
@@ -304,9 +304,18 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         super.onActivityResult(requestCode, resultCode, data);
 
         if(resultCode==RESULT_OK) {
+            Uri selectedFile = null;
+
+            if(requestCode == 1)
+                selectedFile = getPhotoUri();
+            else if(requestCode == 2)
+                selectedFile = getVideoUri();
+            else // 3 4
+                selectedFile = data.getData();
+
             lstComposePreview.setVisibility(View.VISIBLE);
 
-            mComposePreviewAdapter.addItem(data.getData());
+            mComposePreviewAdapter.addItem(selectedFile);
         }
     }
 

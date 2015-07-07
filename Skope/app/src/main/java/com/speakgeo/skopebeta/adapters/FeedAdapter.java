@@ -99,6 +99,7 @@ public class FeedAdapter extends BaseExpandableListAdapter {
             holder.tvDislike = (TextView) viewToUse.findViewById(R.id.tv_dislike);
             holder.tvLikeClick = (TextView) viewToUse.findViewById(R.id.tv_like_click);
             holder.tvDislikeClick = (TextView) viewToUse.findViewById(R.id.tv_dislike_click);
+            holder.pgbRate = (ProgressBar) viewToUse.findViewById(R.id.pgb_rate);
             viewToUse.setTag(holder);
         } else {
             viewToUse = convertView;
@@ -140,6 +141,15 @@ public class FeedAdapter extends BaseExpandableListAdapter {
         holder.btnCommentExpand.setText(String.format("Comments (%d)", this.mPosts.get(groupPosition).getComment().getItems().size()));
         holder.tvLike.setText(String.valueOf(this.mPosts.get(groupPosition).getLike().getTotal()));
         holder.tvDislike.setText(String.valueOf(this.mPosts.get(groupPosition).getDislike().getTotal()));
+
+        if(this.mPosts.get(groupPosition).getLike().getTotal() != this.mPosts.get(groupPosition).getDislike().getTotal()) {
+            holder.pgbRate.setMax(this.mPosts.get(groupPosition).getLike().getTotal() + this.mPosts.get(groupPosition).getDislike().getTotal());
+            holder.pgbRate.setProgress(this.mPosts.get(groupPosition).getLike().getTotal());
+        }
+        else {
+            holder.pgbRate.setMax(2);
+            holder.pgbRate.setProgress(1);
+        }
 
         ImageLoaderSingleton.getInstance(mContext).load(mPosts.get(groupPosition).getUser().getAvatar(),mPosts.get(groupPosition).getUser().getId(),new OnCompletedDownloadListener() {
             @Override
@@ -199,6 +209,7 @@ public class FeedAdapter extends BaseExpandableListAdapter {
         TextView tvLikeClick;
         TextView tvDislikeClick;
         Button btnComment;
+        ProgressBar pgbRate;
     }
 
     private class CommentViewHolder {

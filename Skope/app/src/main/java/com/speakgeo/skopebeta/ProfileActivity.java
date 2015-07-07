@@ -277,7 +277,8 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
     }
 
     private Uri getAvatarUri() {
-        File file = new File(Environment.getDataDirectory().getPath(), "avatar");
+        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "avatar");
+
         return Uri.fromFile(file);
     }
 
@@ -448,21 +449,22 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
             Gson gson = new GsonBuilder().create();
             UpdateProfileResponse res = gson.fromJson(result, UpdateProfileResponse.class);
 
-            if(res.getMeta().getCode() == 400) {
-                Toast.makeText(getApplicationContext(), res.getMeta().getMessage(), Toast.LENGTH_LONG).show();
-            }
-            else {
-                mUser = res.getData().getUser();
+            if(res != null) {
+                if (res.getMeta().getCode() == 400) {
+                    Toast.makeText(getApplicationContext(), res.getMeta().getMessage(), Toast.LENGTH_LONG).show();
+                } else {
+                    mUser = res.getData().getUser();
 
-                ImageLoaderSingleton.getInstance(getApplicationContext()).clearCacheById("User_" + mUser.getId());
+                    ImageLoaderSingleton.getInstance(getApplicationContext()).clearCacheById("User_" + mUser.getId());
 
-                ImageLoaderSingleton.getInstance(getApplicationContext()).load(mUser.getAvatar(), "User_" + mUser.getId(), new OnCompletedDownloadListener() {
-                    @Override
-                    public void onComplete(View[] views, Bitmap bitmap) {
-                        ((ImageView) views[0]).setImageBitmap(ImageUtil.getRoundedCornerBitmap(bitmap));
-                        views[1].setVisibility(View.GONE);
-                    }
-                }, null, new Option(200, 200), imgAvatar, prgLoadingImage);
+                    ImageLoaderSingleton.getInstance(getApplicationContext()).load(mUser.getAvatar(), "User_" + mUser.getId(), new OnCompletedDownloadListener() {
+                        @Override
+                        public void onComplete(View[] views, Bitmap bitmap) {
+                            ((ImageView) views[0]).setImageBitmap(ImageUtil.getRoundedCornerBitmap(bitmap));
+                            views[1].setVisibility(View.GONE);
+                        }
+                    }, null, new Option(200, 200), imgAvatar, prgLoadingImage);
+                }
             }
             hideLoadingBar();
         }

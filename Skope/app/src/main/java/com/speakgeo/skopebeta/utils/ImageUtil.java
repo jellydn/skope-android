@@ -7,6 +7,8 @@ package com.speakgeo.skopebeta.utils;
  * Copyright (c) 2015 San Vo. All right reserved.
  */
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 
 import android.content.ContentResolver;
@@ -50,17 +52,25 @@ public class ImageUtil {
 			ContentResolver cr = context.getContentResolver();
 			InputStream is = null;
 
-			is = cr.openInputStream(uri);
+            if(uri.getPath().contains("content"))
+			    is = cr.openInputStream(uri);
+            else
+                is = new FileInputStream(uri.getPath());
+
 			int size = ImageUtil.calculateBitmapSize(is);
 			is.close();
 
-			is = cr.openInputStream(uri);
+            if(uri.getPath().contains("content"))
+                is = cr.openInputStream(uri);
+            else
+                is = new FileInputStream(uri.getPath());
 
 			Bitmap bm = ImageUtil.resizeUri(is, size);
 			is.close();
 
 			return bm;
 		} catch (Exception e) {
+            e.printStackTrace();
 		}
 		return null;
 	}
