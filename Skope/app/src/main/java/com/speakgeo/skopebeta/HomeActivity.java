@@ -15,7 +15,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Gravity;
@@ -46,6 +45,7 @@ import com.speakgeo.skopebeta.adapters.ComposePreviewAdapter;
 import com.speakgeo.skopebeta.custom.CircularPick;
 import com.speakgeo.skopebeta.custom.CircularPickChangeListener;
 import com.speakgeo.skopebeta.custom.CustomActivity;
+import com.speakgeo.skopebeta.custom.InterceptTouchEventChildDrawerLayout;
 import com.speakgeo.skopebeta.custom.HorizontalListView;
 import com.speakgeo.skopebeta.fragments.FeedFragment;
 import com.speakgeo.skopebeta.fragments.UsersFragment;
@@ -69,7 +69,7 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
     private EditText edtComposeContent;
     private Button btnAttach, btnPost;
     private ImageButton btnLeft, btnRight, btnMessage;
-    private DrawerLayout mDrawerLayout;
+    private InterceptTouchEventChildDrawerLayout mDrawerLayout;
     private HorizontalListView lstComposePreview;
 
     private UsersFragment userFragment;
@@ -132,7 +132,7 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         btnLeft = (ImageButton) this.findViewById(R.id.btn_left);
         btnRight = (ImageButton) this.findViewById(R.id.btn_right);
         lstComposePreview = (HorizontalListView) this.findViewById(R.id.lst_compose_preview);
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerLayout = (InterceptTouchEventChildDrawerLayout) findViewById(R.id.drawer_layout);
         googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
 
         userFragment = (UsersFragment) this.getFragmentManager().findFragmentById(R.id.user_fragment);
@@ -158,6 +158,8 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         tvPosts.setText("0");
 
         lstComposePreview.setAdapter(mComposePreviewAdapter);
+
+        mDrawerLayout.setInterceptTouchEventChildId(R.id.lst_media);
     }
 
     @Override

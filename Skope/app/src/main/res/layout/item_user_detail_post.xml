@@ -23,12 +23,19 @@
             android:text="@string/empty"/>
     </RelativeLayout>
 
-
     <TextView
         android:id="@+id/tv_post_content"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/empty" />
+
+    <com.speakgeo.skopebeta.custom.HorizontalListView
+        android:id="@+id/lst_media"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginTop="8dp"
+        android:background="#aaf6f6f6"
+        android:visibility="gone" />
 
     <LinearLayout
         android:layout_width="match_parent"

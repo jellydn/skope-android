@@ -7,11 +7,13 @@
 
 package com.speakgeo.skopebeta.webservices.objects;
 
+import java.io.Serializable;
+
 /**
 * Response of Login API.
 *
 */
-public class Media {
+public class Media implements Serializable{
     private String id;
     private String type;
     private String src;

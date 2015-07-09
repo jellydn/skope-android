@@ -14,12 +14,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.speakgeo.skopebeta.R;
+import com.speakgeo.skopebeta.custom.HorizontalListView;
 import com.speakgeo.skopebeta.fragments.FeedFragment;
 import com.speakgeo.skopebeta.utils.ImageUtil;
 import com.speakgeo.skopebeta.utils.imageloader.ImageLoaderSingleton;
 import com.speakgeo.skopebeta.utils.imageloader.listeners.OnCompletedDownloadListener;
 import com.speakgeo.skopebeta.utils.imageloader.objects.Option;
 import com.speakgeo.skopebeta.webservices.objects.CommentItem;
+import com.speakgeo.skopebeta.webservices.objects.Media;
 import com.speakgeo.skopebeta.webservices.objects.Post;
 
 import java.util.ArrayList;
@@ -100,6 +102,7 @@ public class FeedAdapter extends BaseExpandableListAdapter {
             holder.tvLikeClick = (TextView) viewToUse.findViewById(R.id.tv_like_click);
             holder.tvDislikeClick = (TextView) viewToUse.findViewById(R.id.tv_dislike_click);
             holder.pgbRate = (ProgressBar) viewToUse.findViewById(R.id.pgb_rate);
+            holder.lstMeida = (HorizontalListView) viewToUse.findViewById(R.id.lst_media);
             viewToUse.setTag(holder);
         } else {
             viewToUse = convertView;
@@ -159,6 +162,12 @@ public class FeedAdapter extends BaseExpandableListAdapter {
             }
         },null, new Option(150,150),holder.imgAvatar,holder.prgLoading);
 
+        if(mPosts.get(groupPosition).getMedia().size() != 0) {
+            MediaAdapter adapter = new MediaAdapter(mContext, mPosts.get(groupPosition).getMedia());
+            holder.lstMeida.setAdapter(adapter);
+            holder.lstMeida.setVisibility(View.VISIBLE);
+        }
+
         return viewToUse;
     }
 
@@ -210,6 +219,7 @@ public class FeedAdapter extends BaseExpandableListAdapter {
         TextView tvDislikeClick;
         Button btnComment;
         ProgressBar pgbRate;
+        HorizontalListView lstMeida;
     }
 
     private class CommentViewHolder {

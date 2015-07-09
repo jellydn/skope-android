@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import com.speakgeo.skopebeta.R;
 import com.speakgeo.skopebeta.custom.ExpandableHeightListView;
+import com.speakgeo.skopebeta.custom.HorizontalListView;
 import com.speakgeo.skopebeta.interfaces.ICommentable;
 import com.speakgeo.skopebeta.webservices.objects.CommentItem;
 import com.speakgeo.skopebeta.webservices.objects.Post;
@@ -100,6 +101,7 @@ public class PostsAdapter extends BaseExpandableListAdapter {
             holder.tvLikeClick = (TextView) viewToUse.findViewById(R.id.tv_like_click);
             holder.tvDislikeClick = (TextView) viewToUse.findViewById(R.id.tv_dislike_click);
             holder.pgbRate = (ProgressBar) viewToUse.findViewById(R.id.pgb_rate);
+            holder.lstMeida = (HorizontalListView) viewToUse.findViewById(R.id.lst_media);
             viewToUse.setTag(holder);
         } else {
             viewToUse = convertView;
@@ -161,6 +163,13 @@ public class PostsAdapter extends BaseExpandableListAdapter {
         DateFormat sdf = new SimpleDateFormat("dd MMMM, yyyy");
         Date netDate = (new Date(this.mPosts.get(groupPosition).getCreated_at()));
         holder.tvPostDate.setText(sdf.format(netDate));
+
+        if(mPosts.get(groupPosition).getMedia().size() != 0) {
+            MediaAdapter adapter = new MediaAdapter(mContext, mPosts.get(groupPosition).getMedia());
+            holder.lstMeida.setAdapter(adapter);
+            holder.lstMeida.setVisibility(View.VISIBLE);
+        }
+
         return viewToUse;
     }
 
@@ -214,6 +223,7 @@ public class PostsAdapter extends BaseExpandableListAdapter {
         TextView tvLikeClick;
         TextView tvDislikeClick;
         ProgressBar pgbRate;
+        HorizontalListView lstMeida;
     }
 
     private class CommentViewHolder {

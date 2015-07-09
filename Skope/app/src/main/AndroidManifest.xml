@@ -69,6 +69,9 @@
         <activity
             android:name="com.speakgeo.skopebeta.MessageDetailActivity"
             android:screenOrientation="portrait" />
+        <activity
+            android:name="com.speakgeo.skopebeta.MediaDetailActivity"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>
