@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 /**
  * Skope
- *
+ * <p/>
  * Created by Vo Hoang San - hoangsan.762@gmai.com
  * Copyright (c) 2015 San Vo. All right reserved.
  */
@@ -52,7 +52,7 @@ public class ChatAdapter extends BaseAdapter {
                     .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 
             //TODO temp data
-            if(position %3==0)
+            if (position % 3 == 0)
                 viewToUse = inflater.inflate(R.layout.item_chat_left, null);
             else
                 viewToUse = inflater.inflate(R.layout.item_chat_right, null);
@@ -72,7 +72,7 @@ public class ChatAdapter extends BaseAdapter {
     /**
      * Holder for the list items.
      */
-    private class ViewHolder{
+    private class ViewHolder {
         //TextView titleText;
     }
 

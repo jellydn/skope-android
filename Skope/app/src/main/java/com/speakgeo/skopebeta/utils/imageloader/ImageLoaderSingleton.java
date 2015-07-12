@@ -10,7 +10,6 @@ package com.speakgeo.skopebeta.utils.imageloader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
@@ -54,7 +53,7 @@ public class ImageLoaderSingleton {
 			if (completedDownloadListener != null) completedDownloadListener.onComplete(views, bm);
 		}
 		else {
-			WeakReference<LoadedGroupInfo> weakLoadedGroupInfo = new WeakReference<LoadedGroupInfo>(new LoadedGroupInfo(views, url, cacheId, completedDownloadListener, progressChangeListener, option));
+			LoadedGroupInfo weakLoadedGroupInfo = new LoadedGroupInfo(views, url, cacheId, completedDownloadListener, progressChangeListener, option);
 
 			this.executeTask(weakLoadedGroupInfo);
 		}
@@ -95,25 +94,25 @@ public class ImageLoaderSingleton {
 		this.clearCache();
 	}
 
-	private void executeTask(WeakReference<LoadedGroupInfo> loadedGroupInfo) {
+	private void executeTask(LoadedGroupInfo loadedGroupInfo) {
 		mThreadPool.execute(new ProcessTask(loadedGroupInfo));
 	}
 
-	private void onFinishLoadFileInThread(WeakReference<LoadedGroupInfo> loadGroupInfo, WeakReference<Bitmap> bm) {
-		if (loadGroupInfo.get() != null && loadGroupInfo.get().getCompletedDownloadListener() != null) {
-			loadGroupInfo.get().getCompletedDownloadListener().onComplete(loadGroupInfo.get().getViews(), bm.get());
+	private void onFinishLoadFileInThread(LoadedGroupInfo loadGroupInfo, Bitmap bm) {
+		if (loadGroupInfo != null && loadGroupInfo.getCompletedDownloadListener() != null) {
+			loadGroupInfo.getCompletedDownloadListener().onComplete(loadGroupInfo.getViews(), bm);
 		}
 	}
 
-	private void onProgressChangeInThread(WeakReference<LoadedGroupInfo> loadGroupInfo, int progress) {
-		if (loadGroupInfo.get() == null || loadGroupInfo.get().getProgressChangeListener() == null) return;
+	private void onProgressChangeInThread(LoadedGroupInfo loadGroupInfo, int progress) {
+		if (loadGroupInfo == null || loadGroupInfo.getProgressChangeListener() == null) return;
 
-		loadGroupInfo.get().getProgressChangeListener().onProgressChange(loadGroupInfo.get().getViews(), progress);
+		loadGroupInfo.getProgressChangeListener().onProgressChange(loadGroupInfo.getViews(), progress);
 	}
 
 	private class ProcessTask implements Runnable, OnProgressChangeListener {
-		private final WeakReference<LoadedGroupInfo> mLoadedGroupInfo;
-		private WeakReference<Bitmap> mResult;
+		private final LoadedGroupInfo mLoadedGroupInfo;
+		private Bitmap mResult;
 		private int mProgress;
 		private final Handler threadHandler = new Handler();
 
@@ -131,32 +130,30 @@ public class ImageLoaderSingleton {
 			}
 		};
 
-		public ProcessTask(WeakReference<LoadedGroupInfo> loadedGroupInfo) {
+		public ProcessTask(LoadedGroupInfo loadedGroupInfo) {
 			mLoadedGroupInfo = loadedGroupInfo;
 		}
 
 		@Override
 		public void run() {
 
-			if (mLoadedGroupInfo.get() != null) {
-				LoadedGroupInfo loadedGroupInfo = mLoadedGroupInfo.get();
-
-				if (mContext.getFileStreamPath(loadedGroupInfo.getCacheId()).exists()) {
-					mResult = new WeakReference<Bitmap>(resizeImage(loadedGroupInfo.getCacheId(), loadedGroupInfo.getOption()));
+			if (mLoadedGroupInfo != null) {
+				if (mContext.getFileStreamPath(mLoadedGroupInfo.getCacheId()).exists()) {
+					mResult = resizeImage(mLoadedGroupInfo.getCacheId(), mLoadedGroupInfo.getOption());
 				}
 				else {
-					mResult = new WeakReference<Bitmap>(downloadImage(loadedGroupInfo.getCacheId(), loadedGroupInfo.getUrl(), loadedGroupInfo.getOption(), this));
+					mResult = downloadImage(mLoadedGroupInfo.getCacheId(), mLoadedGroupInfo.getUrl(), mLoadedGroupInfo.getOption(), this);
 				}
 
-				if (loadedGroupInfo.getCompletedDownloadListener() != null) threadHandler.post(threadCallback);
+				if (mLoadedGroupInfo.getCompletedDownloadListener() != null) threadHandler.post(threadCallback);
 
-				if (mResult.get() == null) return;
+				if (mResult == null) return;
 
-				if (loadedGroupInfo.isCache()) {
-					mMemoryCache.put(loadedGroupInfo.getCacheId(), mResult.get());
+				if (mLoadedGroupInfo.isCache()) {
+					mMemoryCache.put(mLoadedGroupInfo.getCacheId(), mResult);
 				}
 				else {
-					mContext.deleteFile(loadedGroupInfo.getCacheId());
+					mContext.deleteFile(mLoadedGroupInfo.getCacheId());
 				}
 			}
 		}

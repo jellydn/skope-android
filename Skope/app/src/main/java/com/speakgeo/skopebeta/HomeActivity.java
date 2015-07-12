@@ -159,7 +159,7 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
 
         lstComposePreview.setAdapter(mComposePreviewAdapter);
 
-        mDrawerLayout.setInterceptTouchEventChildId(R.id.lst_media);
+        //mDrawerLayout.setInterceptTouchEventChildId(R.id.lst_media);
     }
 
     @Override
