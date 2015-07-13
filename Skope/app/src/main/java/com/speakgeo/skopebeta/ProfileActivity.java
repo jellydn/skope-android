@@ -438,7 +438,7 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
 
             HttpFileUploadUtil uploader = new HttpFileUploadUtil(
                     UserProfileSingleton.END_POINT + "user/avatar?access_token="+UserProfileSingleton.getConfig(getApplicationContext()).getAccessToken());
-            uploader.addData("file", imageData, "avatar.png");
+            uploader.addData("file", imageData, "avatar.png","image/png");
             return uploader.doUpload();
         }
 
@@ -456,6 +456,7 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
                     mUser = res.getData().getUser();
 
                     ImageLoaderSingleton.getInstance(getApplicationContext()).clearCacheById("User_" + mUser.getId());
+                    ImageLoaderSingleton.getInstance(getApplicationContext()).clearCacheById("MyAvatar");
 
                     ImageLoaderSingleton.getInstance(getApplicationContext()).load(mUser.getAvatar(), "User_" + mUser.getId(), new OnCompletedDownloadListener() {
                         @Override

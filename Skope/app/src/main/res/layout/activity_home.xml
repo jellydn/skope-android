@@ -184,14 +184,14 @@
             android:layout_margin="16dp"
             android:background="@drawable/ic_btn_message_list" />
 
-        <ImageButton
+        <ImageView
             android:id="@+id/btn_profile"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
-            android:layout_margin="16dp"
-            android:background="@drawable/temp_avatar" />
+            android:scaleType="fitCenter"
+            android:layout_margin="16dp"/>
 
         <RelativeLayout
             android:id="@+id/vgr_compose"

@@ -32,6 +32,8 @@ public class ImageUtil {
 	 * @return Bitmap dest.
 	 */
 	public static Bitmap getRoundedCornerBitmap(Bitmap bitmap) {
+        if(bitmap == null) return null;
+
 		Bitmap bmp = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getWidth(),
 				Bitmap.Config.ARGB_8888);
 		Canvas c = new Canvas(bmp);
@@ -52,7 +54,7 @@ public class ImageUtil {
 			ContentResolver cr = context.getContentResolver();
 			InputStream is = null;
 
-            if(uri.getPath().contains("content"))
+            if(uri.toString().contains("content"))
 			    is = cr.openInputStream(uri);
             else
                 is = new FileInputStream(uri.getPath());
@@ -60,7 +62,7 @@ public class ImageUtil {
 			int size = ImageUtil.calculateBitmapSize(is);
 			is.close();
 
-            if(uri.getPath().contains("content"))
+            if(uri.toString().contains("content"))
                 is = cr.openInputStream(uri);
             else
                 is = new FileInputStream(uri.getPath());

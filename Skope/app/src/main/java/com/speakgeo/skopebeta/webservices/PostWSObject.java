@@ -1,9 +1,9 @@
 /**
-* Skope
-*
-* Created by Vo Hoang San - hoangsan.762@gmai.com
-* Copyright (c) 2015 San Vo. All right reserved.
-*/
+ * Skope
+ *
+ * Created by Vo Hoang San - hoangsan.762@gmai.com
+ * Copyright (c) 2015 San Vo. All right reserved.
+ */
 
 package com.speakgeo.skopebeta.webservices;
 
@@ -15,7 +15,7 @@ import com.google.gson.GsonBuilder;
 import com.speakgeo.skopebeta.utils.RestfulWSUtil;
 import com.speakgeo.skopebeta.utils.UserProfileSingleton;
 import com.speakgeo.skopebeta.webservices.objects.CommentResponse;
-import com.speakgeo.skopebeta.webservices.objects.CommonResponse;
+import com.speakgeo.skopebeta.webservices.objects.PostResponse;
 import com.speakgeo.skopebeta.webservices.objects.SearchPostResponse;
 import com.speakgeo.skopebeta.webservices.objects.VoteResponse;
 
@@ -26,9 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
-* Implement all services API which relate with Point.
-*
-*/
+ * Implement all services API which relate with Point.
+ */
 public class PostWSObject {
     public static SearchPostResponse search(Context context, double longitude, double latitude, int distance, int page, int limit) {
         try {
@@ -46,12 +45,12 @@ public class PostWSObject {
             Gson gson = new GsonBuilder().create();
             return gson.fromJson(result, SearchPostResponse.class);
         } catch (Exception e) {
-            Log.e("SAN", "PostWSObject/search: "+ e.getMessage());
+            Log.e("SAN", "PostWSObject/search: " + e.getMessage());
             return null;
         }
     }
 
-    public static CommonResponse post(Context context, String content, double longitude, double latitude) {
+    public static PostResponse post(Context context, String content, double longitude, double latitude) {
         try {
             List<NameValuePair> queries = new ArrayList<NameValuePair>(1);
             queries.add(new BasicNameValuePair("access_token", UserProfileSingleton.getConfig(context).getAccessToken()));
@@ -65,9 +64,9 @@ public class PostWSObject {
                     + "user/post", nameValuePairs, queries);
 
             Gson gson = new GsonBuilder().create();
-            return gson.fromJson(result, CommonResponse.class);
+            return gson.fromJson(result, PostResponse.class);
         } catch (Exception e) {
-            Log.e("SAN", "PostWSObject/post: "+ e.getMessage());
+            Log.e("SAN", "PostWSObject/post: " + e.getMessage());
             return null;
         }
     }
@@ -81,12 +80,12 @@ public class PostWSObject {
             nameValuePairs.add(new BasicNameValuePair("content", content));
 
             String result = RestfulWSUtil.doPost(UserProfileSingleton.END_POINT
-                    + "post/"+postId+"/comment", nameValuePairs, queries);
+                    + "post/" + postId + "/comment", nameValuePairs, queries);
 
             Gson gson = new GsonBuilder().create();
             return gson.fromJson(result, CommentResponse.class);
         } catch (Exception e) {
-            Log.e("SAN", "PostWSObject/comment: "+ e.getMessage());
+            Log.e("SAN", "PostWSObject/comment: " + e.getMessage());
             return null;
         }
     }
@@ -97,15 +96,15 @@ public class PostWSObject {
             queries.add(new BasicNameValuePair("access_token", UserProfileSingleton.getConfig(context).getAccessToken()));
 
             List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);
-            nameValuePairs.add(new BasicNameValuePair("type", isLike?"like":"dislike"));
+            nameValuePairs.add(new BasicNameValuePair("type", isLike ? "like" : "dislike"));
 
             String result = RestfulWSUtil.doPost(UserProfileSingleton.END_POINT
-                    + "post/"+postId+"/vote", nameValuePairs, queries);
+                    + "post/" + postId + "/vote", nameValuePairs, queries);
 
             Gson gson = new GsonBuilder().create();
             return gson.fromJson(result, VoteResponse.class);
         } catch (Exception e) {
-            Log.e("SAN", "PostWSObject/vote: "+ e.getMessage());
+            Log.e("SAN", "PostWSObject/vote: " + e.getMessage());
             return null;
         }
     }

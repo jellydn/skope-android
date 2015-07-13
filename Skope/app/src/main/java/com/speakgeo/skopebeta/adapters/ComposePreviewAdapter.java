@@ -84,6 +84,13 @@ public class ComposePreviewAdapter extends BaseAdapter {
         return viewToUse;
     }
 
+    public Uri pop() {
+        Uri r = mData.get(0);
+        mData.remove(0);
+        notifyDataSetChanged();
+        return r;
+    }
+
     /**
      * Holder for the list items.
      */

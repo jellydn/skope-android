@@ -33,12 +33,12 @@ public class HttpFileUploadUtil {
 	}
 
 	public void addData(String name, Object value) {
-		Data temp = new Data(name, value, null);
+		Data temp = new Data(name, value, null, null);
 		mData.add(temp);
 	}
 
-	public void addData(String name, Object value, String filename) {
-		Data temp = new Data(name, value, filename);
+	public void addData(String name, Object value, String filename, String fileType) {
+		Data temp = new Data(name, value, filename, fileType);
 		mData.add(temp);
 	}
 
@@ -78,7 +78,7 @@ public class HttpFileUploadUtil {
 					dos.writeBytes("Content-Disposition: form-data; name=\""
 							+ item.getName() + "\";filename=\""
 							+ item.getFilename() + "\"" + lineEnd);
-                    dos.writeBytes("Content-Type: image/png" + lineEnd);
+                    dos.writeBytes("Content-Type: "+item.getFileType() + lineEnd);
 					dos.writeBytes(lineEnd);
 
 					int totalSize = uploadData.length;
@@ -139,11 +139,13 @@ public class HttpFileUploadUtil {
 		private String mName;
 		private Object mValue;
 		private String mFilename;
+        private String mFileType;
 
-		public Data(String name, Object value, String filename) {
+		public Data(String name, Object value, String filename, String fileType) {
 			mName = name;
 			mValue = value;
 			mFilename = filename;
+            mFileType = fileType;
 		}
 
 		public String getName() {
@@ -169,5 +171,13 @@ public class HttpFileUploadUtil {
 		public void setFilename(String mFilename) {
 			this.mFilename = mFilename;
 		}
-	}
+
+        public String getFileType() {
+            return mFileType;
+        }
+
+        public void setFileType(String mFileType) {
+            this.mFileType = mFileType;
+        }
+    }
 }
