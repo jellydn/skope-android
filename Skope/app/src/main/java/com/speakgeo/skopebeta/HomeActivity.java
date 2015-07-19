@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
@@ -59,6 +60,8 @@ import com.speakgeo.skopebeta.utils.UserProfileSingleton;
 import com.speakgeo.skopebeta.utils.VideoUtil;
 import com.speakgeo.skopebeta.utils.imageloader.ImageLoaderSingleton;
 import com.speakgeo.skopebeta.utils.imageloader.listeners.OnCompletedDownloadListener;
+import com.speakgeo.skopebeta.utils.imageloader.listeners.OnProgressChangeListener;
+import com.speakgeo.skopebeta.utils.imageloader.objects.LoadedGroupInfo;
 import com.speakgeo.skopebeta.utils.imageloader.objects.Option;
 import com.speakgeo.skopebeta.webservices.PostWSObject;
 import com.speakgeo.skopebeta.webservices.UserWSObject;
@@ -69,6 +72,9 @@ import com.speakgeo.skopebeta.webservices.objects.User;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class HomeActivity extends CustomActivity implements View.OnClickListener, CircularPickChangeListener, AdapterView.OnItemClickListener, GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener {
     private TextView tvUsers, tvPosts, tvRadius;
@@ -99,7 +105,8 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
     private SearchUserTask mSearchUserTask;
     private SearchPostTask mSearchPostTask;
     private PostTask mPostTask;
-    private UploadMediaTask mUploadMediaTask;
+
+    private ExecutorService mUploadThreadPool;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,8 +126,10 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
     public void initData() {
         mUser = (User) this.getIntent().getSerializableExtra("USER");
 
-        mLastLocation = new LatLng(15.8907709f, 108.3219069f);
+        mLastLocation = new LatLng(16.0466742f,108.206706f);
         mCurrentRadius = 1;
+
+        mUploadThreadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
         mComposePreviewAdapter = new ComposePreviewAdapter(getApplicationContext());
     }
@@ -201,6 +210,13 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
     }
 
     @Override
+    protected void onStop() {
+        //mUploadThreadPool.shutdown();
+
+        super.onStop();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         if (mGoogleApiClient.isConnected()) {
@@ -238,6 +254,10 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
             edtComposeContent.requestFocus();
         } else if (v.getId() == R.id.btn_post) {
             if (!edtComposeContent.getText().toString().isEmpty()) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(
+                        Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(edtComposeContent.getWindowToken(), 0);
+
                 if (mPostTask != null) mPostTask.cancel(true);
                 mPostTask = new PostTask();
                 mPostTask.execute(edtComposeContent.getText().toString());
@@ -412,9 +432,10 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
     }
 
     private void uploadMedias(String postId) {
-        if (mUploadMediaTask != null) mUploadMediaTask.cancel(true);
-        mUploadMediaTask = new UploadMediaTask(postId);
-        mUploadMediaTask.execute(mComposePreviewAdapter.pop());
+        showLoadingBar();
+        Toast.makeText(getApplicationContext(), "Upload media...", Toast.LENGTH_SHORT).show();
+
+        mUploadThreadPool.execute(new UploadMediaTask(postId,mComposePreviewAdapter.pop()));
     }
 
     /*--------------- Tasks ----------------*/
@@ -504,10 +525,6 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
 
                 edtComposeContent.setText("");
 
-                InputMethodManager imm = (InputMethodManager) getSystemService(
-                        Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(edtComposeContent.getWindowToken(), 0);
-
                 Toast.makeText(getApplicationContext(), getString(R.string.post_success), Toast.LENGTH_SHORT).show();
                 hideLoadingBar();
 
@@ -519,55 +536,48 @@ public class HomeActivity extends CustomActivity implements View.OnClickListener
         }
     }
 
-    private class UploadMediaTask extends AsyncTask<Uri, Void, String> {
+    private class UploadMediaTask implements Runnable {
         private String mPostId;
+        private Uri mUri;
 
-        public UploadMediaTask(String postId) {
+        private final Handler threadHandler = new Handler();
+
+        private final Runnable threadCallback = new Runnable() {
+            @Override
+            public void run() {
+                if (mComposePreviewAdapter.getCount() == 0) {
+                    mComposePreviewAdapter.reset();
+                    photoIndex = 0;
+                    videoIndex = 0;
+
+                    hideLoadingBar();
+                    Toast.makeText(getApplicationContext(), "Upload media done!", Toast.LENGTH_LONG).show();
+                } else {
+                    hideLoadingBar();
+                    uploadMedias(mPostId);
+                }
+            }
+        };
+
+        public UploadMediaTask(String postId, Uri uri) {
             mPostId = postId;
+            mUri = uri;
         }
 
         @Override
-        protected void onPreExecute() {
-            showLoadingBar();
-            Toast.makeText(getApplicationContext(), "Upload media...", Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        protected String doInBackground(Uri... params) {
+        public void run() {
             HttpFileUploadUtil uploader = new HttpFileUploadUtil(
                     UserProfileSingleton.END_POINT + "post/" + mPostId + "/media?access_token=" + UserProfileSingleton.getConfig(getApplicationContext()).getAccessToken());
 
-            if (params[0].toString().contains("video")) {
-                uploader.addData("file", VideoUtil.getBytesFromUri(getApplicationContext(),params[0]), "video.mp4", "video/mp4");
+            if (mUri.toString().contains("video")) {
+                uploader.addData("file", mUri, "video.mp4", "video/mp4");
             } else {
-                ByteArrayOutputStream baOS = new ByteArrayOutputStream();
-                Bitmap bitmap = ImageUtil.resizeBitmapFromUri(
-                        getApplicationContext(), params[0]);
-
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, baOS);
-                byte[] imageData = baOS.toByteArray();
-
-                uploader.addData("file", imageData, "photo.png", "image/png");
+                uploader.addData("file", mUri, "photo.png", "image/png");
             }
 
-            return uploader.doUpload();
-        }
+            uploader.doUpload(getApplicationContext());
 
-        @Override
-        protected void onPostExecute(String result) {
-            super.onPostExecute(result);
-
-            if (mComposePreviewAdapter.getCount() == 0) {
-                mComposePreviewAdapter.reset();
-                photoIndex = 0;
-                videoIndex = 0;
-
-                hideLoadingBar();
-                Toast.makeText(getApplicationContext(), "Upload media done!", Toast.LENGTH_LONG).show();
-            } else {
-                hideLoadingBar();
-                uploadMedias(mPostId);
-            }
+            threadHandler.post(threadCallback);
         }
     }
 }

@@ -429,17 +429,10 @@ public class ProfileActivity extends CustomActivity implements View.OnClickListe
 
         @Override
         protected String doInBackground(Uri... params) {
-            ByteArrayOutputStream baOS = new ByteArrayOutputStream();
-            Bitmap bitmap = ImageUtil.resizeBitmapFromUri(
-                    getApplicationContext(), params[0]);
-
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, baOS);
-            byte[] imageData = baOS.toByteArray();
-
             HttpFileUploadUtil uploader = new HttpFileUploadUtil(
                     UserProfileSingleton.END_POINT + "user/avatar?access_token="+UserProfileSingleton.getConfig(getApplicationContext()).getAccessToken());
-            uploader.addData("file", imageData, "avatar.png","image/png");
-            return uploader.doUpload();
+            uploader.addData("file", params[0], "avatar.png","image/png");
+            return uploader.doUpload(getApplicationContext());
         }
 
         @Override

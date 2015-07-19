@@ -7,9 +7,15 @@
 
 package com.speakgeo.skopebeta.utils;
 
+import android.content.ContentResolver;
+import android.content.Context;
+import android.net.Uri;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -42,7 +48,7 @@ public class HttpFileUploadUtil {
 		mData.add(temp);
 	}
 
-	public String doUpload() {
+	public String doUpload(Context context) {
 
 		HttpURLConnection conn = null;
 		DataOutputStream dos = null;
@@ -52,13 +58,10 @@ public class HttpFileUploadUtil {
 		String twoHyphens = "--";
 		String boundary = "*****";
 
-		int maxBufferSize = 1024 * 1024;
-
 		try {
 			// Open a HTTP connection to the URL
 			conn = (HttpURLConnection) mConnectURL.openConnection();
-			conn.setReadTimeout(10000);
-			conn.setUseCaches(true);
+			conn.setReadTimeout(UserProfileSingleton.TIME_OUT);
 			conn.setDoInput(true);
 			conn.setDoOutput(true);
 			conn.setUseCaches(false);
@@ -72,8 +75,7 @@ public class HttpFileUploadUtil {
 			dos = new DataOutputStream(conn.getOutputStream());
 
 			for (Data item : mData) {
-				if (item.getValue() instanceof byte[]) {
-					byte[] uploadData = (byte[]) item.getValue();
+				if (item.getValue() instanceof Uri) {
 					dos.writeBytes(twoHyphens + boundary + lineEnd);
 					dos.writeBytes("Content-Disposition: form-data; name=\""
 							+ item.getName() + "\";filename=\""
@@ -81,19 +83,22 @@ public class HttpFileUploadUtil {
                     dos.writeBytes("Content-Type: "+item.getFileType() + lineEnd);
 					dos.writeBytes(lineEnd);
 
-					int totalSize = uploadData.length;
-					int part = totalSize / maxBufferSize;
-					int odd = totalSize % maxBufferSize;
+                    InputStream is;
+                    Uri uri = (Uri)item.getValue();
+                    if(uri.toString().contains("content")) {
+                        ContentResolver cr = context.getContentResolver();
+                        is = cr.openInputStream(uri);
+                    }
+                    else {
+                        is = new FileInputStream(uri.getPath());
+                    }
 
-					for (int i = 0; i < part; i++) {
-						dos.write(uploadData, i * maxBufferSize, maxBufferSize);
-						dos.flush();
-					}
-
-					if (odd > 0) {
-						dos.write(uploadData, part * maxBufferSize, odd);
-						dos.flush();
-					}
+                    byte[] buf = new byte[1024*1024];
+                    int len;
+                    while ((len = is.read(buf)) > 0) {
+                        dos.write(buf, 0, len);
+                    }
+                    is.close();
 
 					dos.writeBytes(lineEnd);
 					dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
